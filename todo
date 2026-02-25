@@ -1,0 +1,17 @@
+Phase 1 — Domain Modeling (You Are Here)
+Build:
+    |- Struct representations
+    |- Enum business states
+    |- Relationship thinking
+DONE DONE DONE DONE DONE DONE
+DONE DONE DONE DONE DONE DONE
+////////////////////////////////
+Phase 2 — Persistence Layer
+    |- PgPool
+    |- Query layers
+    |- Schema mapping
+//////////////////////////////
+Phase 3 — Application Logic
+    |- Authentication
+    |- Order processing logic
+    |- File handling
