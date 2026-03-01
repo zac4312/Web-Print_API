@@ -1,20 +1,52 @@
 mod models;
-use sqlx::{PgPool, postgres::PgRow};
-use models::md_user::User;
+mod service;
+mod routes;
+mod db;
+
+use service::user;
+use service::partner;
+
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
-    println!("Hello, world!"); 
-    let test = PgPool::connect("postgresql://zacm:1234@localhost:5432/webprintingapi_db").await?;
-    let res = get(&test).await?; 
-    println!("{:?}", res);
-    Ok(()) 
-}
+println!("-------------------------------------");
+println!("--TESTING--");
+println!("-------------------------------------");
+    
+    println!("DB connection: ");
+    let con = db::connect().await?;
+    println!("SUCCESS"); 
+ 
+println!("-------------------------------------");
+    
+    println!("[ USERS ]");
 
-async fn get(con: &PgPool) -> Result<Vec<PgRow>, sqlx::Error> {
-     let act = sqlx::query(r#" SELECT * FROM users "#)
-         .fetch_all(con)
-         .await?;
+    println!("Create User:");
+    let create_u = user::create_user(&con).await?;
+    println!("SUCCESS {:?}", create_u);
+    println!("-------------------------------------");
+
+    println!("List Users: ");
+    let list_u = user::get_users(&con).await?;
+    println!("{:?}", list_u);
+    println!("-------------------------------------");
+    
+    println!("-------------------------------------");
+    println!("[ PARTNERS ]");
+ 
+    println!("Create Partner:");
+    let create_p = partner::create_partner(&con).await?; 
+    println!("SUCCESS {:?}", create_p);
+    println!("-------------------------------------");
+
+    println!("List Partners: ");
+    let list_p = partner::get_partner(&con).await?;
+    println!("{:?}", list_p);
+    println!("-------------------------------------");
+    
         
-     Ok(act)
+
+println!("-------------------------------------");
+
+    Ok(()) 
 }
 

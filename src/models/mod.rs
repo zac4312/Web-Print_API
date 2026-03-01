@@ -1,3 +1,4 @@
-pub mod md_user;
-pub mod md_partner;
-pub mod md_transaction_obj;
+pub mod users;
+pub mod partners;
+pub mod transaction_obj;
+
