@@ -32,6 +32,7 @@ impl Vendor {
                     location: PgPoint,
                     availability: Vacancy) -> Self { 
 
-        Self {  pub_id: utils::generate_id(8) , name, pw_hash, email, bw_rate, clrd_rate, location, availability} }
+        Self {  pub_id: utils::generate_id(8) , name, pw_hash, email, bw_rate, clrd_rate, location, availability }
+    }
 }
 
