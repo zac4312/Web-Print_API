@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO vendors (name, pw_hash, email, bw_rate, clrd_rate, location, availability, pub_id) \n         VALUES ($1, $2, $3, $4, $5, $6, $7::vacancy, $8);\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        },
+        "Numeric",
+        "Numeric",
+        "Point",
+        {
+          "Custom": {
+            "name": "vacancy",
+            "kind": {
+              "Enum": [
+                "available",
+                "s_busy",
+                "busy",
+                "closed"
+              ]
+            }
+          }
+        },
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "dd4d7745ebdc5ba1cbef3ae5395d15ea9ae7780091ca7e54c6bf63ed570898b1"
+}
