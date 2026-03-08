@@ -9,10 +9,10 @@ CREATE TABLE users(
     pw_hash varchar(255) not null
 );
 
-CREATE TABLE partners (
+CREATE TABLE partners ( --now vedors-- 
     partner_id uuid PRIMARY KEY  default gen_random_uuid(),
     name varchar(25) not null,
-    pw_hash varchar(255) not null,
+    pw_hash varchar(255)not null,
     bw_rate decimal(10,2) not null,
     clrd_rate decimal(10,2) not null,
     location point not null,
@@ -25,7 +25,7 @@ CREATE TABLE orders (
     print_size size not null,
     color boolean not null,
     dt_stamp TimeStamptz default now(), 
-    
+    --added files--
     client_id uuid not null references users(user_id),
     shop_id  uuid not null references partners(partner_id)
 );
@@ -37,5 +37,5 @@ CREATE TABLE files (
     mime_type varchar(100) not null,
     deleted_on TimeStamptz,
     
-    order_for uuid references orders(order_id)
+    order_for uuid references orders(order_id) --removed--
 );
