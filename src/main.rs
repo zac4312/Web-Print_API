@@ -2,12 +2,14 @@ mod models;
 mod service;
 mod routes;
 mod db;
+mod utils;
 
-use service::{list_accounts, accounts_creation};
-use models::{users::User, partners};
+use std::str::FromStr;
+
+use crate::{models::vendors, service::{user::{create_user, get_users}, vendor::{create_vendor, get_vendor}}};
+use crate::models::{users::User, vendors::Vendor};
 use sqlx::postgres::types::PgPoint;
-
-use crate::models::partners::Shop;
+use bigdecimal::BigDecimal;
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
@@ -24,14 +26,15 @@ println!("-------------------------------------");
     println!("[ USERS ]");
 
     println!("Create User:");
-    let name = "TEST"; let pw = "TEST";
-    let user = User::new(name.to_string(), pw.to_string());
-    let create_u = accounts_creation::create_user(&con, user).await?;
+    let name = "TEST"; let pw = "TEST"; let email = "a@gmail.com"; 
+    
+    let user = User::new(name.to_string(), pw.to_string(), email.to_string());
+    let create_u = create_user(&con, user).await?;
     println!("SUCCESS {:?}", create_u);
     println!("-------------------------------------");
 
     println!("List Users: ");
-    let list_u = list_accounts::get_users(&con).await?;
+    let list_u = get_users(&con).await?;
     println!("{:?}", list_u);
     println!("-------------------------------------");
     
@@ -39,17 +42,23 @@ println!("-------------------------------------");
     println!("[ PARTNERS ]");
  
     println!("Create Partner:");
-    let pname = "test"; let p_pw = "test"; let bw_rate = 33.33; let clrd_rate = 22.22;
-    let location = PgPoint { x: (7.047875), y: (125.451333) }; 
-    let shop_status = partners::Availability::Busy;
-    let partner = Shop::new(pname.to_string(), p_pw.to_string(), bw_rate, clrd_rate, location, shop_status);
+    let pname = "test"; let p_pw = "test"; let email = "a@gmail.com";
 
-    let create_p = accounts_creation::create_partner(&con, partner).await?; 
+    let bw_rate = BigDecimal::from_str("33.33").expect("failed");
+    let clrd_rate = BigDecimal::from_str("22.22").expect("failed");
+    
+    let location = PgPoint { x: (7.047875), y: (125.451333) }; 
+
+    let shop_status = vendors::Vacancy::Busy;
+
+    let partner = Vendor::new(pname.to_string(), p_pw.to_string(), email.to_string() ,bw_rate, clrd_rate, location, shop_status);
+
+    let create_p = create_vendor(&con, partner).await?; 
     println!("SUCCESS {:?}", create_p);
     println!("-------------------------------------");
 
     println!("List Partners: ");
-    let list_p = list_accounts::get_partner(&con).await?;
+    let list_p = get_vendor(&con).await?;
     println!("{:?}", list_p);
     println!("-------------------------------------");
     
