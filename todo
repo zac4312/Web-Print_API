@@ -17,4 +17,9 @@ Phase 3 — Application Logic
     |- File handling
 
 
-FINISH MIGRATION FILES: 004-005 THEN SUPPORT PUB ID IN MODELS
+create a sql directory: better query writing.
+use:
+let order = sqlx::query_file!(
+    "sql/orders_with_files.sql",
+    order_id
+)
