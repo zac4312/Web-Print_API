@@ -25,13 +25,13 @@ CREATE TABLE orders (
     order_id uuid PRIMARY KEY  default gen_random_uuid(),
     copies SmallInt not null,
     print_size size not null,
-    color boolean not null,
-    dt_stamp TimeStamptz default now(), 
+    color boolean not null, 
     pub_id varchar(20) not null unique,
     
     file_id uuid not null references files(file_id),
-    client_id uuid not null references users(user_id),
-    shop_id  uuid not null references partners(partner_id)
+    for_vendor uuid not null references vendors(vendor_id),
+    for_user uuid not null references users(user_id);
+
 );
 
 CREATE TABLE files (
@@ -41,3 +41,28 @@ CREATE TABLE files (
     mime_type varchar(100) not null,
     deleted_on TimeStamptz
 )
+
+create type state as enum ('rejected', 'paid', 'claimed', 'completed');
+
+CREATE TABLE order_history (
+    history_id uuid PRIMARY KEY default gen_random_uuid(),
+    order_status state not null,
+    created_at TimeStamptz default now(),
+    paid_at TimeStamptz,
+    claimed_at TimeStamptz,
+    completed_at TimeStamptz,
+
+    order_of uuid not null references orders(order_id)
+)
+
+create type payment_method as enum ('on-site', 'paypal');
+
+CREATE TABLE payments (
+   payment_id uuid PRIMARY KEY default gen_random_uuid(),
+   transaction_id text not null,
+   method payment_method not null,
+   amount_paid DECIMAL(10,2),
+   paid_at TimeStamptz,
+
+   order_of uuid not null references orders(order_id);
+);
