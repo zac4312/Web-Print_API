@@ -1,3 +1,4 @@
+use bigdecimal::BigDecimal;
 use sqlx::prelude::FromRow;
 use uuid::Uuid;
 use chrono::NaiveDateTime;
@@ -19,25 +20,25 @@ pub enum Size {
 pub struct Order {
     pub copies: u32,
     pub print_size: Size,
-    pub color: bool,
-    pub dt_stamp: NaiveDateTime,
-    pub pub_id: String,
+    pub color: bool, 
+    pub total: BigDecimal,
 
+    pub pub_id: String,
     pub file: String,
-    pub target_shop: Uuid,
-    pub client: Uuid,
+    pub target_shop: String,
+    pub client: String,
 }
 
 impl Order {
     pub fn new(copies: u32,
                     print_size: Size,
-                    color: bool,
-                    dt_stamp: NaiveDateTime,
+                    color: bool, 
                     file: String,
-                    target_shop: Uuid,
-                    client: Uuid) -> Self {
+                    total: BigDecimal,
+                    target_shop: String,
+                    client:  String) -> Self {
        
-        Self { pub_id: utils::generate_id(8), copies, print_size, color, dt_stamp, file ,target_shop, client }
+        Self { pub_id: utils::generate_id(8), copies, print_size, color, total ,file ,target_shop, client }
     } 
 }
 
