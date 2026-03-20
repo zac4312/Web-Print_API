@@ -8,10 +8,10 @@ pub async fn create_vendor(con: &Pool<Postgres>, vendor: Vendor) -> Result<(), s
         INSERT INTO vendors (name, pw_hash, email, bw_rate, clrd_rate, location, availability, pub_id) 
          VALUES ($1, $2, $3, $4, $5, $6, $7::vacancy, $8);
         ",
-        vendor.name, vendor.pw_hash, vendor.email, vendor.bw_rate, vendor.clrd_rate, vendor.location, vendor.availability as Vacancy, vendor.pub_id 
+        &vendor.name, &vendor.pw_hash, &vendor.email, &vendor.bw_rate, &vendor.clrd_rate, &vendor.location, &vendor.availability as &Vacancy, &vendor.pub_id 
     )       
     .execute(con)
-    .await?;
+    .await?; 
 
     Ok(())
 }
@@ -22,6 +22,7 @@ pub async fn get_vendor(con: &Pool<Postgres>) -> Result<Vec<PgRow>, sqlx::Error>
          r#" 
          SELECT * FROM vendors; 
          "#)
+
 
     .fetch_all(con)
     .await?;

@@ -2,7 +2,7 @@ use sqlx::{postgres::types::PgPoint, prelude::FromRow};
 use bigdecimal::BigDecimal;
 use crate::utils;
 
-#[derive(sqlx::Type, Debug)]
+#[derive(sqlx::Type, Debug, PartialEq)]
 #[sqlx(type_name = "vacancy", rename_all = "snake_case")]
 pub enum Vacancy{
     Available,
