@@ -1,6 +1,5 @@
 use bigdecimal::BigDecimal;
 use sqlx::prelude::FromRow;
-use uuid::Uuid;
 use chrono::NaiveDateTime;
 
 use crate::utils;
