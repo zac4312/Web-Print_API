@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT vendor_id, availability as \"availability: Vacancy\" FROM vendors\nwhere pub_id = $1\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "vendor_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "availability: Vacancy",
+        "type_info": {
+          "Custom": {
+            "name": "vacancy",
+            "kind": {
+              "Enum": [
+                "available",
+                "s_busy",
+                "busy",
+                "closed"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "71bb590674d7db935e8ae111af524b311a15844422bbac4a009b2a66096bf0fb"
+}

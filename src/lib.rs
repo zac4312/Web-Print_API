@@ -1,3 +1,4 @@
+pub mod dto;
 pub mod err;
 pub mod models;
 pub mod service;

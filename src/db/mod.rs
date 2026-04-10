@@ -1,4 +1,4 @@
-use sqlx::{ Pool, Postgres, postgres::{PgPoolOptions} };
+use sqlx::{ Pool, Postgres, postgres::PgPoolOptions };
 
 pub async fn connect() ->  Result<Pool<Postgres>, sqlx::Error> {
     let pool = PgPoolOptions::new()

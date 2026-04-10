@@ -1,13 +1,28 @@
+
+
 #[derive(Debug, PartialEq)]
-pub enum ServiceErr {
+pub enum TransactionErr {
     VendorNotFound,
-    VendorUnavailable,
-    DatabaseError
+    VendorUnavailable,    
+    TransactionDatabaseError
 }
 
-impl From<sqlx::Error> for ServiceErr {
+impl From<sqlx::Error> for TransactionErr {
     fn from(err: sqlx::Error) -> Self {
         eprintln!("Database Error: {:?}", err);
-        ServiceErr::DatabaseError
+        TransactionErr::TransactionDatabaseError
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub enum VendorErr {
+   OrderNotFoud,
+   VendorDatabaseErr
+}
+
+impl From<sqlx::Error> for VendorErr {
+    fn from(err: sqlx::Error) -> Self {
+        eprintln!("Database Error: {:?}", err);
+        VendorErr::VendorDatabaseErr
     }
 }

@@ -1,0 +1,50 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO orders (copies, print_size, color, file_id, pub_id, for_vendor, for_user, total, status)\nVALUES ($1, $2::size, $3, $4, $5, $6, $7, $8, $9);\n",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int2",
+        {
+          "Custom": {
+            "name": "size",
+            "kind": {
+              "Enum": [
+                "a4",
+                "a5",
+                "a3",
+                "letter",
+                "legal",
+                "tabloid"
+              ]
+            }
+          }
+        },
+        "Bool",
+        "Uuid",
+        "Varchar",
+        "Uuid",
+        "Uuid",
+        "Numeric",
+        {
+          "Custom": {
+            "name": "state",
+            "kind": {
+              "Enum": [
+                "rejected",
+                "paid",
+                "claimed",
+                "completed",
+                "pending",
+                "accepted"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "43905b83f73a51bb3c685eef0628f0a7bde5d5f0f3432f8d284ac3f780fc0b0d"
+}

@@ -1,10 +1,9 @@
-use sqlx::{postgres::types::PgPoint, prelude::FromRow};
+use serde::{Deserialize, Serialize};
+use sqlx::{prelude::FromRow};
 use bigdecimal::BigDecimal;
 use crate::{utils};
 
-
-
-#[derive(sqlx::Type, Debug, PartialEq)]
+#[derive(sqlx::Type, Debug, PartialEq, Serialize, Deserialize)]
 #[sqlx(type_name = "vacancy", rename_all = "snake_case")]
 pub enum Vacancy{
     Available,
@@ -21,8 +20,11 @@ pub struct Vendor {
     pub email: String,
     pub bw_rate: BigDecimal,
     pub clrd_rate: BigDecimal,
-    pub location: PgPoint,
+    pub lat: f64,
+    pub long: f64,
     pub availability: Vacancy,
+    pub brand: String,
+    pub gcash: String
 }
 
 impl Vendor {
@@ -31,10 +33,12 @@ impl Vendor {
                     email: String,
                     bw_rate: BigDecimal,
                     clrd_rate: BigDecimal,
-                    location: PgPoint,
-                    availability: Vacancy) -> Self { 
+                    lat: f64,
+                    long: f64,
+                    gcash: String,
+                    brand: String) -> Self { 
 
-        Self {  pub_id: utils::generate_id(8) , name, pw_hash, email, bw_rate, clrd_rate, location, availability }
+        Self {  pub_id: utils::generate_id(8) , name, pw_hash, email, bw_rate, clrd_rate, lat, long, availability: Vacancy::Available, brand, gcash }
     }
 }
 
