@@ -1,0 +1,2 @@
+ALTER TABLE vendors 
+    ALTER COLUMN gcash DROP NOT NULL;

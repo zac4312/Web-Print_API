@@ -35,6 +35,7 @@ pub enum State {
     Paid,
     Claimed,
     Completed,
+    Accepted,
     Pending
 }
  

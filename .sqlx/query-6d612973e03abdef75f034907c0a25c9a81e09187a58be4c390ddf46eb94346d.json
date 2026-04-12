@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "Select file_id from files where pub_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "file_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "6d612973e03abdef75f034907c0a25c9a81e09187a58be4c390ddf46eb94346d"
+}

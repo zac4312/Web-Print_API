@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "Select vendor_id from vendors where pub_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "vendor_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1dc0c4da5f777328cc20c03c7a0b002a5d6cb631923e666c4dc54402a70b1833"
+}

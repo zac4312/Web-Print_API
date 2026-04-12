@@ -20,3 +20,9 @@ pub struct CreateUser {
     pub email: String,
     pub pw_hash: String,
 }
+
+#[derive(Deserialize)]
+pub struct LoginUser {
+    pub username: String,
+    pub pw: String
+} 

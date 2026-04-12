@@ -3,6 +3,18 @@ use uuid::Uuid;
 
 use crate::{dto::user::{GetUser}, models::users::User};
 
+pub async fn login_user(con: &Pool<Postgres>, pw: String) -> Result<String, sqlx::Error> {
+    let attempt = sqlx::query!(
+        "
+        select pub_id from users
+        where pw_hash = $1;
+        ", pw)
+        .fetch_one(con)
+        .await?;
+
+    Ok(attempt.pub_id)
+}
+
 pub async fn create_user(con: &Pool<Postgres>, user: &User) -> Result<(), sqlx::Error> {
     sqlx::query!("INSERT INTO users (name, pw_hash, email, pub_id) VALUES ($1, $2, $3, $4)",
             user.name,

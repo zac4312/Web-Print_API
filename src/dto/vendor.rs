@@ -2,7 +2,31 @@ use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use sqlx::{prelude::FromRow};
 
-use crate::models::vendors::Vacancy;
+use crate::models::{transaction_obj::{Size, State}, vendors::Vacancy};
+
+#[derive(FromRow, Serialize)]
+pub struct OwnedOrders {
+    pub copies: i16,
+    pub print_size: Size,
+    pub color: bool, 
+    pub total: BigDecimal,
+    pub status: State,
+    pub name: String,
+    pub file_path: String,
+    pub pub_id: String
+}
+
+#[derive(FromRow, Serialize)]
+pub struct HandlingOrders { 
+    pub copies: i16,
+    pub print_size: Size,
+    pub color: bool, 
+    pub total: BigDecimal,
+    pub status: State,
+    pub name: String,
+    pub file_path: String,
+    pub reciept: String
+}
 
 #[derive(Serialize, FromRow)]
 pub struct GetVendors { 
@@ -31,5 +55,16 @@ pub struct CreateVendor {
     pub long: f64,
     pub brand: String,
     pub pw: String,
-    pub gcash: String
+}
+
+#[derive(Deserialize)]
+pub struct VendorLogin {
+    pub pw: String,
+    pub username: String
+}
+
+#[derive(FromRow, Serialize)]
+pub struct VendorHome {
+    pub lat: f64,
+    pub long: f64
 }
