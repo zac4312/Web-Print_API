@@ -2,17 +2,20 @@ use bigdecimal::{ToPrimitive};
 use sqlx::{Pool, Postgres, Result, Transaction};
 use uuid::Uuid;
 
-use crate::{ err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy } };
+use crate::{ dto::vendor::ChooseVendor, err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy } };
 
-pub async fn choose_vendor(con: &Pool<Postgres>, ui: &String) -> Result<(), TransactionErr>{
-    let query = sqlx::query_file!("sql_queries/choose_vendor.sql", ui)     
-        .fetch_optional(con)
+pub async fn choose_vendor(con: &Pool<Postgres>, ui: &String) -> Result<Vec<ChooseVendor>, TransactionErr>{
+    let query = sqlx::query_as::<_, ChooseVendor>(
+    "
+    SELECT availability FROM vendors
+    where pub_id = $1;
+    ")  .bind(ui) 
+        .fetch_one(con)
         .await?;
 
-    let vendor = query.ok_or(TransactionErr::VendorNotFound)?;
-    if vendor.availability == Vacancy::Closed {return Err(TransactionErr::VendorUnavailable)}
+    if query.availability == Vacancy::Closed {return Err(TransactionErr::VendorUnavailable)}
 
-    Ok(())
+    Ok(query)
 }
 
 

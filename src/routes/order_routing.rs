@@ -3,13 +3,13 @@ use axum_macros::debug_handler;
 use chrono::Local;
 use tokio::{fs, io::AsyncWriteExt};
 
-use crate::{db, dto::{file::{CreateFileOut}, order::{CreateOrder}, vendor::{ChooseVendor, GetVendors}}, models::{transaction_obj::{FileObj, Order}}, service::{transaction::{attach_file, create_order}, vendor::get_vendor}};
+use crate::{db, dto::{file::CreateFileOut, order::CreateOrder, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, choose_vendor, create_order}, vendor::get_vendor}};
 
 pub fn route() -> Router {
     Router::new()
         .route("/attachfile", post(post_file))
         .route("/listvendors", get(list_vendors))
-        .route("/choosevendor", post(choose_vendor))
+        .route("/choosevendor", post(route_choose_vendor))
         .route("/createorder", post(post_order))
 }
 
@@ -45,10 +45,11 @@ async fn list_vendors() -> Json<Vec<GetVendors>> {
     Json(vendors)
 }
 
-async fn choose_vendor(Json(payload): Json<ChooseVendor>) -> Json<String> {
-    let choice = ChooseVendor { pub_id: payload.pub_id };
+#[debug_handler]
+async fn route_choose_vendor(Json(payload): Json<ChooseVendor>) -> Json<String> {
+    let con = db::connect().await.unwrap(); let choice = choose_vendor(&con, &payload.pub_id).await.unwrap(); 
     
-    Json(choice.pub_id)
+    Json(choice.)
 }
 #[debug_handler]
 async fn post_order(Json(payload): Json<CreateOrder>) -> StatusCode {

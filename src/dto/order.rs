@@ -11,7 +11,8 @@ pub struct CreateOrder {
     pub user: String,
     pub vendor: String,
     pub file: String,
-    pub total: BigDecimal 
+    pub total: BigDecimal,
+    pub reciept: Option<String>
 }
 
 #[derive(Serialize)]

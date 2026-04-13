@@ -25,7 +25,7 @@ pub struct HandlingOrders {
     pub status: State,
     pub name: String,
     pub file_path: String,
-    pub reciept: String
+    pub reciept: Option<String>
 }
 
 #[derive(Serialize, FromRow)]
@@ -40,9 +40,9 @@ pub struct GetVendors {
     pub brand: String
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(FromRow ,Deserialize, Serialize)]
 pub struct ChooseVendor {
-    pub pub_id: String 
+    pub pub_id: String,
 }
 
 #[derive(Deserialize)]

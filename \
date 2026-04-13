@@ -21,7 +21,7 @@ pub struct Order {
     pub color: bool, 
     pub total: BigDecimal,
     pub status: State,
-    pub reciept: Option<String>,
+    pub reciept: String,
 
     pub pub_id: String,
     pub file: String,
@@ -49,7 +49,7 @@ impl Order {
                     target_shop: String,
                     client:  String) -> Self {
        
-        Self { pub_id: utils::generate_id(8), copies, print_size, color, total, status: State::Pending ,file ,target_shop, client, reciept: None }
+        Self { pub_id: utils::generate_id(8), copies, print_size, color, total, status: State::Pending ,file ,target_shop, client }
     } 
 }
 
