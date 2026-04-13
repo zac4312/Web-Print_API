@@ -57,35 +57,35 @@
 
 * Rust Setup
 
-    |- clone Web-Print_API: git clone https://github.com/zac4312/Web-Print_API.git
+        |- clone Web-Print_API: git clone https://github.com/zac4312/Web-Print_API.git
 
-    |- cd to project directory
+        |- cd to project directory
 
-    |- add file ./.env
+        |- add file ./.env
 
-    |- edit .env file, add: DATABASE_URL=postgres://user:password@localhost:5432/webprintingapi_db
+        |- edit .env file, add: DATABASE_URL=postgres://user:password@localhost:5432/webprintingapi_db
 
-        (if above dont work try: DATABASE_URL=postgres://postgres@localhost/webprintingapi_db)
+            (if above dont work try: DATABASE_URL=postgres://postgres@localhost/webprintingapi_db)
 
-    |- In terminal run: cargo build
+        |- In terminal run: cargo build
 
         |- wait till it finishes building
 
-    |- run: cargo add sqlx
+        |- run: cargo add sqlx
 
-    |- run: cargo sqlx migrate run
+        |- run: cargo sqlx migrate run
 
-    |- run: psql -d webprintingapi_db -f ./docs/test_seed.sql
+        |- run: psql -d webprintingapi_db -f ./docs/test_seed.sql
     
-    |- run: cargo sqlx prepare
+        |- run: cargo sqlx prepare
 
-    |- run: cargo run
+        |- run: cargo run
     
-        (back end should now be running)
+            (back end should now be running)
 
 * JS Integration
 
-    |- clone: https://github.com/zac4312/Web-Print_JS-Integration.git
+        |- clone: https://github.com/zac4312/Web-Print_JS-Integration.git
         
 (*Note: any changes to the code will not be possible to push, for push request please message me for access)
     
