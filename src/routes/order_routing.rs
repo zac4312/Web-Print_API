@@ -3,7 +3,7 @@ use axum_macros::debug_handler;
 use chrono::Local;
 use tokio::{fs, io::AsyncWriteExt};
 
-use crate::{db, dto::{file::CreateFileOut, order::CreateOrder, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, choose_vendor, create_order}, vendor::get_vendor}};
+use crate::{db, dto::{file::CreateFileOut, order::CreateOrder, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, create_order}, vendor::get_vendor}};
 
 pub fn route() -> Router {
     Router::new()
@@ -47,10 +47,15 @@ async fn list_vendors() -> Json<Vec<GetVendors>> {
 
 #[debug_handler]
 async fn route_choose_vendor(Json(payload): Json<ChooseVendor>) -> Json<String> {
+let choice = ChooseVendor { pub_id: payload.pub_id };
+
+Json(choice.pub_id)
+}
+/*async fn route_choose_vendor(Json(payload): Json<ChooseVendor>) -> Json<String> {
     let con = db::connect().await.unwrap(); let choice = choose_vendor(&con, &payload.pub_id).await.unwrap(); 
     
     Json(choice.)
-}
+}*/
 #[debug_handler]
 async fn post_order(Json(payload): Json<CreateOrder>) -> StatusCode {
     

@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{ dto::vendor::ChooseVendor, err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy } };
 
-pub async fn choose_vendor(con: &Pool<Postgres>, ui: &String) -> Result<Vec<ChooseVendor>, TransactionErr>{
+/*pub async fn choose_vendor(con: &Pool<Postgres>, ui: &String) -> Result<Vec<ChooseVendor>, TransactionErr>{
     let query = sqlx::query_as::<_, ChooseVendor>(
     "
     SELECT availability FROM vendors
@@ -16,7 +16,7 @@ pub async fn choose_vendor(con: &Pool<Postgres>, ui: &String) -> Result<Vec<Choo
     if query.availability == Vacancy::Closed {return Err(TransactionErr::VendorUnavailable)}
 
     Ok(query)
-}
+}*/
 
 
 pub async fn attach_file(con: &Pool<Postgres>, file: &FileObj) -> Result<(), TransactionErr> {
