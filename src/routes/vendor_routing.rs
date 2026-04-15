@@ -1,23 +1,24 @@
 use axum::{Json, Router, extract::{Multipart, Path}, http::{HeaderMap, StatusCode, header}, routing::{get, post}};
 use axum_macros::debug_handler;
 use tokio::{fs, io::AsyncWriteExt};
-use crate::{db::connect, dto::{file::VendorDownload, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, change_availability, create_vendor, get_vendor_home, list_handling_orders, list_orders, reject_order, vendor_login}};
+use crate::{db::connect, dto::{file::VendorDownload, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_home, list_handling_orders, list_orders, reject_order, vendor_login}};
 
 pub fn route() -> Router {
     Router::new()
-        .route("/new", post(new_vendor))
-        .route("/{pub_id}/add_gcash/", post(add_gcash))
-        .route("/download_file", post(download_file))
-        .route("/login", post(vendor_login_attempt))
-        .route("/{pub_id}/home", get(vendor_home))
-        .route("/{pub_id}/change_status", post(change_status))
-        .route("/{pub_id}/orders", get(see_orders))
-        .route("/accept", post(accept_order_route))
-        .route("/reject", post(reject_order_route))
-        .route("/{pub_id}/handlingorders", get(handling_orders))
+        .route("/new", post(new_vendor)) // DONE
+        .route("/{pub_id}/add_gcash", post(route_add_gcash)) // DONE
+        .route("/download_file", post(download_file)) //DONE
+        .route("/login", post(vendor_login_attempt)) // DONE
+        .route("/{pub_id}/home", get(vendor_home)) // DONE { For Improvement }
+        .route("/{pub_id}/change_status", post(change_status)) // DONE
+        .route("/{pub_id}/orders", get(see_orders)) //DONE 
+        .route("/accept", post(accept_order_route)) //DONE
+        .route("/reject", post(reject_order_route)) //DONE
+        .route("/{pub_id}/handlingorders", get(handling_orders)) // DONE {change to filter
+                                                                 // implement in JS Implement}
 }
 
-async fn handling_orders(vendor: Path<String>) -> (StatusCode, Json<Vec<HandlingOrders>>) { //will fail due to reciept
+async fn handling_orders(vendor: Path<String>) -> (StatusCode, Json<Vec<HandlingOrders>>) {
     let con = connect().await.unwrap(); let orders  = list_handling_orders(&con, &vendor).await.unwrap();
     (StatusCode::OK, Json(orders))
 }
@@ -57,13 +58,15 @@ async fn vendor_login_attempt(Json(payload): Json<VendorLogin>) -> (StatusCode, 
 }
 
 #[debug_handler]
-async fn add_gcash (path: Path<String>, mut gcash_qr: Multipart) -> (StatusCode, Json<String>) {
+async fn route_add_gcash (path: Path<String>, mut gcash_qr: Multipart) -> (StatusCode, Json<String>) {
    if let Some(field) = gcash_qr.next_field().await.unwrap() {
         let data = field.bytes(). await.unwrap();
-        let file_path = format!("./vendor_img/{:?}", path);  
+        let file_path = format!("./vendor_img/{}", path.to_string());  
         
         let mut file = fs::File::create(&file_path).await.unwrap();
         file.write_all(&data).await.unwrap();
+
+    let con = connect().await.unwrap(); add_gcash(&con, file_path.to_string(), path.to_string()).await.unwrap();
         
     return (StatusCode::OK, Json(file_path));
    }else {

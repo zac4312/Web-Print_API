@@ -2,6 +2,19 @@ use sqlx::{Pool, Postgres, postgres::PgRow};
 
 use crate::{dto::vendor::{GetVendors, HandlingOrders, OwnedOrders, VendorHome}, err::{TransactionErr, VendorErr}, models::vendors::{Vacancy, Vendor}};
 
+pub async fn add_gcash(con: &Pool<Postgres>, file_path: String, pub_id: String) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        "
+    UPDATE vendors 
+    set gcash = $1
+    WHERE pub_id = $2;
+        ", file_path, pub_id)
+        .execute(con)
+        .await?;
+
+    Ok(())
+}
+
 pub async fn change_availability(con: &Pool<Postgres>, pub_id: String, new_state: Vacancy) -> Result<(), sqlx::Error> {
     sqlx::query(
         " 
