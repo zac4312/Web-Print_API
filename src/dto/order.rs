@@ -1,7 +1,14 @@
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
+use sqlx::prelude::FromRow;
 
 use crate::models::transaction_obj::{Size, State};
+
+#[derive(Debug, Serialize)]
+pub struct VendorGcash {
+    pub gcash: String,
+    pub vendor_id: String
+} 
 
 #[derive(Deserialize)]
 pub struct CreateOrder {

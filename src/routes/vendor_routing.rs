@@ -60,9 +60,8 @@ async fn vendor_login_attempt(Json(payload): Json<VendorLogin>) -> (StatusCode, 
 #[debug_handler]
 async fn route_add_gcash (path: Path<String>, mut gcash_qr: Multipart) -> (StatusCode, Json<String>) {
    if let Some(field) = gcash_qr.next_field().await.unwrap() {
-        let data = field.bytes(). await.unwrap();
-        let file_path = format!("./vendor_img/{}", path.to_string());  
-        
+        let data = field.bytes().await.unwrap(); 
+        let file_path = format!("./vendor_img/{}.png", path.to_string());  
         let mut file = fs::File::create(&file_path).await.unwrap();
         file.write_all(&data).await.unwrap();
 

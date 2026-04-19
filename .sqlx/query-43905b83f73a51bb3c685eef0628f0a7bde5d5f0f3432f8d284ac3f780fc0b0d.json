@@ -37,7 +37,8 @@
                 "claimed",
                 "completed",
                 "pending",
-                "accepted"
+                "accepted",
+                "unpaid"
               ]
             }
           }

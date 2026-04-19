@@ -1,7 +1,23 @@
 use sqlx::{Pool, Postgres};
-use uuid::Uuid;
 
-use crate::{dto::user::{GetUser}, models::users::User};
+use crate::{dto::user::{GetUser, MadeOrders}, models::users::User, service::transaction::map_user};
+
+pub async fn made_orders(con: &Pool<Postgres>, user: String) -> Result<Vec<MadeOrders>, sqlx::Error> {
+    let mut tx = con.begin().await?;
+    let user_id = map_user(&mut tx, &user).await?;
+
+    let request = sqlx::query_as::<_, MadeOrders>(
+        "
+        select o.pub_id as o_pub_id ,o.total, o.status, o.copies, o.print_size, o.color, v.pub_id as v_pub_id, v.brand
+        from orders o
+        left join vendors v
+        on o.for_vendor = v.vendor_id
+        where o.for_user = $1
+        ") .bind(user_id)
+        .fetch_all(con)
+        .await?;
+    Ok(request)
+}
 
 pub async fn login_user(con: &Pool<Postgres>, pw: String) -> Result<String, sqlx::Error> {
     let attempt = sqlx::query!(
@@ -34,13 +50,6 @@ pub async fn get_users(con: &Pool<Postgres>) -> Result<Vec<GetUser>, sqlx::Error
         .await?;
 
      Ok(act) 
-}
-
-pub async fn map_user(con: &Pool<Postgres>, pub_id: &String) -> Result<Uuid, sqlx::Error> {
-    let db_id = sqlx::query_file!("sql_queries/map_users.sql", pub_id)
-        .fetch_one(con)
-        .await?;
-    Ok(db_id.user_id)
 }
 
  

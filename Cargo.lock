@@ -10,6 +10,7 @@ dependencies = [
  "axum-macros",
  "bigdecimal",
  "chrono",
+ "dotenvy",
  "native-json",
  "rand 0.10.0",
  "serde",

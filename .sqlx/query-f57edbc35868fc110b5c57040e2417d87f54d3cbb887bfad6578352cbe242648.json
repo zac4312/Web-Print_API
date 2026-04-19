@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n    UPDATE vendors \n    set gcash = $1\n    WHERE pub_id = $2;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f57edbc35868fc110b5c57040e2417d87f54d3cbb887bfad6578352cbe242648"
+}

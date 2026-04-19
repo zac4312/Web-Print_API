@@ -2,7 +2,20 @@ use bigdecimal::{ToPrimitive};
 use sqlx::{Pool, Postgres, Result, Transaction};
 use uuid::Uuid;
 
-use crate::{ dto::vendor::ChooseVendor, err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy } };
+use crate::{ dto::{order, vendor::ChooseVendor}, err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy } };
+
+pub async fn store_reciept(pub_id: String, reciept: &String, con: &Pool<Postgres>) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        "
+        UPDATE orders
+        SET reciept = $1
+        WHERE pub_id = $2; 
+        ", pub_id, reciept)
+        .execute(con)
+        .await?;
+
+    Ok(())
+}
 
 /*pub async fn choose_vendor(con: &Pool<Postgres>, ui: &String) -> Result<Vec<ChooseVendor>, TransactionErr>{
     let query = sqlx::query_as::<_, ChooseVendor>(

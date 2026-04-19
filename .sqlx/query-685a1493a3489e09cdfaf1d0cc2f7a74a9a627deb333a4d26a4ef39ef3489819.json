@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE orders \nSET status = 'accepted'\nwhere pub_id = $1\nreturning pub_id;\n\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "pub_id",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "685a1493a3489e09cdfaf1d0cc2f7a74a9a627deb333a4d26a4ef39ef3489819"
+}

@@ -1,9 +1,9 @@
-use axum::{Json, Router, extract::Multipart, http::{StatusCode}, routing::{get, post}};
+use axum::{Json, Router, extract::{Multipart, Path}, http::{HeaderMap, StatusCode, header}, routing::{get, post}};
 use axum_macros::debug_handler;
 use chrono::Local;
 use tokio::{fs, io::AsyncWriteExt};
 
-use crate::{db, dto::{file::CreateFileOut, order::CreateOrder, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, create_order}, vendor::get_vendor}};
+use crate::{db::{self, connect}, dto::{file::CreateFileOut, order::{CreateOrder, VendorGcash}, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, create_order, store_reciept}, vendor::get_vendor}};
 
 pub fn route() -> Router {
     Router::new()
@@ -11,6 +11,40 @@ pub fn route() -> Router {
         .route("/listvendors", get(list_vendors))
         .route("/choosevendor", post(route_choose_vendor))
         .route("/createorder", post(post_order))
+        .route("/{pub_id}/submit_reciept", post(pay_order))
+        .route("/{pub_id}/gcash", get(see_gcash))
+}
+
+#[debug_handler]
+async fn see_gcash(Path(pub_id): Path<String>) -> (StatusCode, HeaderMap, Vec<u8> ){
+        let file_path = format!("./vendor_img/{}.png", pub_id);
+
+        let data = fs::read(file_path).await.unwrap();
+        
+        let mut headers = HeaderMap::new();
+        
+        headers.insert(
+            header::CONTENT_TYPE,
+            "image/png".parse().unwrap()
+        );
+
+        (StatusCode::OK, headers, data)
+
+}
+
+#[debug_handler]
+async fn pay_order(pub_id: Path<String>, mut file: Multipart) -> StatusCode {
+     if let Some(field) = file.next_field().await.unwrap() {
+        let name = field.file_name().unwrap_or("frdel").to_string(); let file_type = field.content_type().map(|ct| ct.to_string()); let data = field.bytes().await.unwrap();
+        let file_path = format!("./reciepts/{}-{}", pub_id.to_string(), name);  
+        let mut file = fs::File::create(&file_path).await.unwrap();
+
+        file.write_all(&data).await.unwrap();
+
+        let con = connect().await.unwrap(); store_reciept(pub_id.to_string(), &file_path, &con).await.unwrap(); 
+     }
+
+    StatusCode::OK
 }
 
 #[debug_handler]
@@ -18,7 +52,7 @@ async fn post_file(mut file: Multipart) -> Json<String> {
     if let Some(field) = file.next_field().await.unwrap() {
         let name = field.file_name().unwrap_or("frdel").to_string(); let file_type = field.content_type().map(|ct| ct.to_string()); let data = field.bytes().await.unwrap();
 
-        let file_size = data.len();  let file_path = format!("./uploads/{}-{}",name ,Local::now());  
+        let file_size = data.len();  let file_path = format!("./uploads/{}",name);  
         
         let mut file = fs::File::create(&file_path).await.unwrap();
         file.write_all(&data).await.unwrap();
