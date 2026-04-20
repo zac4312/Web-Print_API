@@ -84,7 +84,7 @@ async fn new_vendor(Json(payload): Json<CreateVendor>) -> StatusCode {
 
 #[debug_handler]
 async fn download_file(Json(payload): Json<VendorDownload>) -> (StatusCode, HeaderMap, Vec<u8>) {
-        let data = fs::read( payload.file_path).await.unwrap();
+        let data = fs::read(payload.file_path).await.unwrap();
         
         let mut headers = HeaderMap::new();
         

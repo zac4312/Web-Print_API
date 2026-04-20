@@ -4,6 +4,18 @@ use uuid::Uuid;
 
 use crate::{ dto::{order, vendor::ChooseVendor}, err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy } };
 
+/*pub async fn get_gcash_path(pub_id: String, con: &Pool<Postgres>) -> Result<String, sqlx::Error>{
+    let vendor = sqlx::query!(
+        "
+        Select gcash from vendors
+        where pub_id = $1 
+        ", pub_id)
+        .fetch_one(con)
+        .await?;
+
+    Ok(vendor.gcash)
+}*/
+
 pub async fn store_reciept(pub_id: String, reciept: &String, con: &Pool<Postgres>) -> Result<(), sqlx::Error> {
     sqlx::query!(
         "
@@ -17,8 +29,8 @@ pub async fn store_reciept(pub_id: String, reciept: &String, con: &Pool<Postgres
     Ok(())
 }
 
-/*pub async fn choose_vendor(con: &Pool<Postgres>, ui: &String) -> Result<Vec<ChooseVendor>, TransactionErr>{
-    let query = sqlx::query_as::<_, ChooseVendor>(
+/*pub async fn choose_vendor(con: &Pool<Postgres>, ui: &String) -> Result<String, TransactionErr>{
+    let query = sqlx::query (
     "
     SELECT availability FROM vendors
     where pub_id = $1;
@@ -28,7 +40,7 @@ pub async fn store_reciept(pub_id: String, reciept: &String, con: &Pool<Postgres
 
     if query.availability == Vacancy::Closed {return Err(TransactionErr::VendorUnavailable)}
 
-    Ok(query)
+    Ok(query.pub_id)
 }*/
 
 

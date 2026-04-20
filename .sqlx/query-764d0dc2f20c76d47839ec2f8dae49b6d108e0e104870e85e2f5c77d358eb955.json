@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE orders\n        SET reciept = $1\n        WHERE pub_id = $2; \n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "764d0dc2f20c76d47839ec2f8dae49b6d108e0e104870e85e2f5c77d358eb955"
+}

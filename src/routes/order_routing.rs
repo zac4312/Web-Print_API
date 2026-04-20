@@ -17,7 +17,7 @@ pub fn route() -> Router {
 
 #[debug_handler]
 async fn see_gcash(Path(pub_id): Path<String>) -> (StatusCode, HeaderMap, Vec<u8> ){
-        let file_path = format!("./vendor_img/{}.png", pub_id);
+        let file_path = format!("/home/zacm/PROJECTS/Web-Print_API/vendor_img/{}.png", pub_id);
 
         let data = fs::read(file_path).await.unwrap();
         
@@ -27,9 +27,7 @@ async fn see_gcash(Path(pub_id): Path<String>) -> (StatusCode, HeaderMap, Vec<u8
             header::CONTENT_TYPE,
             "image/png".parse().unwrap()
         );
-
-        (StatusCode::OK, headers, data)
-
+         (StatusCode::OK, headers, data)
 }
 
 #[debug_handler]
