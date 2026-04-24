@@ -2,7 +2,7 @@ pub mod order_routing;
 pub mod user_routing;
 pub mod vendor_routing;
 
-use axum::{Json, Router, http::Method, routing::get};
+use axum::{Json, Router, extract::DefaultBodyLimit, http::Method, routing::get};
 use axum_macros::debug_handler;
 use tokio::{net::TcpListener};
 use tower_http::cors::{Any, CorsLayer};
@@ -22,6 +22,7 @@ pub fn route() -> Router {
         .route("/listuser", get(list_users))
         .route("/hello", get(root))
         .layer(cors)
+        .layer(DefaultBodyLimit::max(100*1024*1024))
 }
 
 pub async fn listener() -> TcpListener {

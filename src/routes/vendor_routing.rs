@@ -1,7 +1,7 @@
 use axum::{Json, Router, extract::{Multipart, Path}, http::{HeaderMap, StatusCode, header}, routing::{get, post}};
 use axum_macros::debug_handler;
 use tokio::{fs, io::AsyncWriteExt};
-use crate::{db::connect, dto::{file::VendorDownload, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_home, list_handling_orders, list_orders, reject_order, vendor_login}};
+use crate::{db::connect, dto::{file::VendorDownload, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_home, list_claimed_orders, list_completed_orders, list_handling_orders, list_orders, list_rejected_orders, reject_order, vendor_login}};
 
 pub fn route() -> Router {
     Router::new()
@@ -14,11 +14,28 @@ pub fn route() -> Router {
         .route("/{pub_id}/orders", get(see_orders)) //DONE 
         .route("/accept", post(accept_order_route)) //DONE
         .route("/reject", post(reject_order_route)) //DONE
-        .route("/{pub_id}/handlingorders", get(handling_orders)) // DONE {change to filter
-                                                                 // implement in JS Implement}
+        .route("/{pub_id}/handlingorders", get(accepted_orders))
+        .route("/{pub_id}/rejected_orders", get(rejected_orders)) 
+        .route("/{pub_id}/claimed_orders", get(claimed_orders))
+        .route("/{pub_id}/completed_orders", get(completed_orders))
 }
 
-async fn handling_orders(vendor: Path<String>) -> (StatusCode, Json<Vec<HandlingOrders>>) {
+async fn completed_orders(vendor: Path<String>) -> (StatusCode, Json<Vec<HandlingOrders>>) {
+    let con = connect().await.unwrap(); let orders = list_completed_orders(&con, &vendor).await.unwrap();
+    (StatusCode::OK, Json(orders))
+}
+
+async fn claimed_orders(vendor: Path<String>) -> (StatusCode, Json<Vec<HandlingOrders>>) {
+    let con = connect().await.unwrap(); let orders = list_claimed_orders(&con, &vendor).await.unwrap();
+    (StatusCode::OK, Json(orders))
+}
+
+async fn rejected_orders(vendor: Path<String>) -> (StatusCode, Json<Vec<HandlingOrders>>) {
+    let con = connect().await.unwrap(); let orders = list_rejected_orders(&con, &vendor).await.unwrap();
+    (StatusCode::OK, Json(orders))
+}
+
+async fn accepted_orders(vendor: Path<String>) -> (StatusCode, Json<Vec<HandlingOrders>>) {
     let con = connect().await.unwrap(); let orders  = list_handling_orders(&con, &vendor).await.unwrap();
     (StatusCode::OK, Json(orders))
 }

@@ -15,7 +15,6 @@ pub struct OwnedOrders {
     pub file_path: String,
     pub pub_id: String
 }
-
 #[derive(FromRow, Serialize)]
 pub struct HandlingOrders { 
     pub copies: i16,

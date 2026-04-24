@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{ dto::{order, vendor::ChooseVendor}, err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy } };
 
-/*pub async fn get_gcash_path(pub_id: String, con: &Pool<Postgres>) -> Result<String, sqlx::Error>{
+pub async fn get_gcash_path(pub_id: String, con: &Pool<Postgres>) -> Result<String, sqlx::Error>{
     let vendor = sqlx::query!(
         "
         Select gcash from vendors
@@ -13,8 +13,9 @@ use crate::{ dto::{order, vendor::ChooseVendor}, err::TransactionErr, models::{ 
         .fetch_one(con)
         .await?;
 
-    Ok(vendor.gcash)
-}*/
+    
+    Ok(vendor.gcash.unwrap())
+}
 
 pub async fn store_reciept(pub_id: String, reciept: &String, con: &Pool<Postgres>) -> Result<(), sqlx::Error> {
     sqlx::query!(
@@ -30,11 +31,11 @@ pub async fn store_reciept(pub_id: String, reciept: &String, con: &Pool<Postgres
 }
 
 /*pub async fn choose_vendor(con: &Pool<Postgres>, ui: &String) -> Result<String, TransactionErr>{
-    let query = sqlx::query (
+    let query = sqlx::query!(
     "
-    SELECT availability FROM vendors
+    SELECT availability as Vacancy FROM vendors
     where pub_id = $1;
-    ")  .bind(ui) 
+    ", ui)  
         .fetch_one(con)
         .await?;
 

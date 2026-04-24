@@ -3,7 +3,7 @@ use axum_macros::debug_handler;
 use chrono::Local;
 use tokio::{fs, io::AsyncWriteExt};
 
-use crate::{db::{self, connect}, dto::{file::CreateFileOut, order::{CreateOrder, VendorGcash}, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, create_order, store_reciept}, vendor::get_vendor}};
+use crate::{db::{self, connect}, dto::{file::CreateFileOut, order::{CreateOrder, VendorGcash}, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, create_order, get_gcash_path, store_reciept}, vendor::get_vendor}};
 
 pub fn route() -> Router {
     Router::new()
@@ -17,8 +17,7 @@ pub fn route() -> Router {
 
 #[debug_handler]
 async fn see_gcash(Path(pub_id): Path<String>) -> (StatusCode, HeaderMap, Vec<u8> ){
-        let file_path = format!("/home/zacm/PROJECTS/Web-Print_API/vendor_img/{}.png", pub_id);
-
+        let con = connect().await.unwrap(); let file_path = get_gcash_path(pub_id, &con).await.unwrap();
         let data = fs::read(file_path).await.unwrap();
         
         let mut headers = HeaderMap::new();

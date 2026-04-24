@@ -2,6 +2,77 @@ use sqlx::{Pool, Postgres, postgres::PgRow};
 
 use crate::{dto::vendor::{GetVendors, HandlingOrders, OwnedOrders, VendorHome}, err::{TransactionErr, VendorErr}, models::vendors::{Vacancy, Vendor}};
 
+pub async fn list_claimed_orders(con: &Pool<Postgres>, ui: &String) -> Result<Vec<HandlingOrders>, sqlx::Error> {
+   let orders = sqlx::query_as::<_, HandlingOrders>(
+       "
+        SELECT o.color, o.copies, o.print_size, o.pub_id, o.status, o.total, u.name, f.file_path, o.reciept
+
+        FROM orders o
+        LEFT JOIN vendors v
+        ON o.for_vendor = v.vendor_id
+        LEFT JOIN users u
+        ON u.user_id = o.for_user
+        LEFT JOIN files f
+        ON f.file_id = o.file_id
+        WHERE 
+        v.pub_id = $1
+        and
+        o.status = 'claimed';        
+       ") .bind(ui)
+       .fetch_all(con)
+       .await?;
+
+    Ok(orders)
+}
+
+pub async fn list_rejected_orders(con: &Pool<Postgres>, ui: &String) -> Result<Vec<HandlingOrders>, sqlx::Error> {
+   let orders = sqlx::query_as::<_, HandlingOrders>(
+       "
+        SELECT o.color, o.copies, o.print_size, o.pub_id, o.status, o.total, u.name, f.file_path, o.reciept
+
+        FROM orders o
+        LEFT JOIN vendors v
+        ON o.for_vendor = v.vendor_id
+        LEFT JOIN users u
+        ON u.user_id = o.for_user
+        LEFT JOIN files f
+        ON f.file_id = o.file_id
+        WHERE 
+        v.pub_id = $1
+        and
+        o.status = 'rejected';        
+       ") .bind(ui)
+       .fetch_all(con)
+       .await?;
+
+    Ok(orders)
+}
+
+pub async fn list_completed_orders(con: &Pool<Postgres>, ui: &String) -> Result<Vec<HandlingOrders>, sqlx::Error> {
+   let orders = sqlx::query_as::<_, HandlingOrders>(
+       "
+        SELECT o.color, o.copies, o.print_size, o.pub_id, o.status, o.total, u.name, f.file_path, o.reciept
+
+        FROM orders o
+        LEFT JOIN vendors v
+        ON o.for_vendor = v.vendor_id
+        LEFT JOIN users u
+        ON u.user_id = o.for_user
+        LEFT JOIN files f
+        ON f.file_id = o.file_id
+        WHERE 
+        v.pub_id = $1
+        and
+        o.status = 'completed';        
+       ") .bind(ui)
+       .fetch_all(con)
+       .await?;
+
+    Ok(orders)
+}
+
+
+
 pub async fn add_gcash(con: &Pool<Postgres>, file_path: String, pub_id: String) -> Result<(), sqlx::Error> {
     sqlx::query!(
         "
