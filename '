@@ -1,7 +1,7 @@
 use axum::{Json, Router, extract::{Multipart, Path}, http::{HeaderMap, StatusCode, header}, routing::{get, post}};
 use axum_macros::debug_handler;
 use tokio::{fs, io::AsyncWriteExt};
-use crate::{db::connect, dto::{file::VendorDownload, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_home, list_claimed_orders, list_completed_orders, list_handling_orders, list_orders, list_rejected_orders, reject_order, set_Ostatus_claimed, set_Ostatus_completed, vendor_login}};
+use crate::{db::connect, dto::{file::VendorDownload, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_home, list_claimed_orders, list_completed_orders, list_handling_orders, list_orders, list_rejected_orders, reject_order, vendor_login}};
 
 pub fn route() -> Router {
     Router::new()
@@ -18,18 +18,10 @@ pub fn route() -> Router {
         .route("/{pub_id}/rejected_orders", get(rejected_orders)) 
         .route("/{pub_id}/claimed_orders", get(claimed_orders))
         .route("/{pub_id}/completed_orders", get(completed_orders))
-        .route("/set_claimed", post(edit_o_status_claimed))
-        .route("/set_completed", post(edit_o_status_completed))
 }
 
-async fn edit_o_status_completed(Json(order): Json<String>) -> StatusCode {
-    let con = connect().await.unwrap(); set_Ostatus_completed(&con, order).await.unwrap();
-    StatusCode::OK
-}
-
-async fn edit_o_status_claimed(Json(order): Json<String>) -> StatusCode {
-    let con = connect().await.unwrap(); set_Ostatus_claimed(&con, order).await.unwrap();
-StatusCode::OK
+async fn edit_o_status_claimed(Json(payload): Json<String>) -> (StatusCode, Json<String>) {
+    let con = connect().await.unwrap;
 }
 
 async fn completed_orders(vendor: Path<String>) -> (StatusCode, Json<Vec<HandlingOrders>>) {

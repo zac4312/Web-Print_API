@@ -1,6 +1,34 @@
-use sqlx::{Pool, Postgres, postgres::PgRow};
+use sqlx::{Pool, Postgres, Result, postgres::PgRow};
 
 use crate::{dto::vendor::{GetVendors, HandlingOrders, OwnedOrders, VendorHome}, err::{TransactionErr, VendorErr}, models::vendors::{Vacancy, Vendor}};
+
+//todo(make paid)
+
+pub async fn set_Ostatus_completed(con: &Pool<Postgres>, order: String) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        "
+    UPDATE orders
+    set status = 'completed'
+    WHERE pub_id = $1
+        "
+    , order)
+        .execute(con)
+        .await?;
+    Ok(())
+}
+
+pub async fn set_Ostatus_claimed(con: &Pool<Postgres>, order: String) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        "
+    UPDATE orders
+    set status = 'claimed'
+    WHERE pub_id = $1
+        "
+    , order)
+        .execute(con)
+        .await?;
+    Ok(())
+}
 
 pub async fn list_claimed_orders(con: &Pool<Postgres>, ui: &String) -> Result<Vec<HandlingOrders>, sqlx::Error> {
    let orders = sqlx::query_as::<_, HandlingOrders>(
