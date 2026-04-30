@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n    UPDATE orders\n    set status = 'claimed'\n    WHERE pub_id = $1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3ad44fa4e4c92ebfc3d53305eb49ba3dfd51fac8a27855950bb19edecc8c94f5"
+}

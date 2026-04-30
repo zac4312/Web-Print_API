@@ -2,18 +2,19 @@ pub mod order_routing;
 pub mod user_routing;
 pub mod vendor_routing;
 
-use axum::{Json, Router, extract::DefaultBodyLimit, http::Method, routing::get};
+use axum::{Json, Router, extract::DefaultBodyLimit, http::{Method}, routing::get};
 use axum_macros::debug_handler;
 use tokio::{net::TcpListener};
 use tower_http::cors::{Any, CorsLayer};
+use http::header::{AUTHORIZATION, CONTENT_TYPE};
 
 use crate::{db, dto::user::GetUser, service::user::get_users};
 
 pub fn route() -> Router {
     let cors = CorsLayer::new()
     .allow_origin(Any)
-    .allow_methods([Method::GET, Method::POST])
-    .allow_headers(Any);
+    .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+    .allow_headers([AUTHORIZATION, CONTENT_TYPE]);
 
     Router::new()
         .nest("/order", order_routing::route())

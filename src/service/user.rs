@@ -1,6 +1,8 @@
+use chrono::{Duration, Utc};
+use jsonwebtoken::{EncodingKey, Header, encode};
 use sqlx::{Pool, Postgres};
 
-use crate::{dto::user::{GetUser, MadeOrders}, models::users::User, service::transaction::map_user};
+use crate::{dto::{jwt::Claims, user::{GetUser, MadeOrders}}, models::users::User, service::transaction::map_user};
 
 pub async fn made_orders(con: &Pool<Postgres>, user: String) -> Result<Vec<MadeOrders>, sqlx::Error> {
     let mut tx = con.begin().await?;
@@ -16,19 +18,28 @@ pub async fn made_orders(con: &Pool<Postgres>, user: String) -> Result<Vec<MadeO
         ") .bind(user_id)
         .fetch_all(con)
         .await?;
+
     Ok(request)
 }
 
 pub async fn login_user(con: &Pool<Postgres>, pw: String) -> Result<String, sqlx::Error> {
     let attempt = sqlx::query!(
-        "
-        select pub_id from users
-        where pw_hash = $1;
-        ", pw)
-        .fetch_one(con)
-        .await?;
+    "
+    select pub_id from users
+    where pw_hash = $1;
+    ", pw)
+    .fetch_one(con)
+    .await?;
 
-    Ok(attempt.pub_id)
+    let key = b"secret";
+    let claim = Claims {
+        sub: attempt.pub_id,
+        exp: (Utc::now() + Duration::hours(10)).timestamp() as usize
+    };
+
+let token = encode(&Header::default(), &claim, &EncodingKey::from_secret(key)).unwrap();
+
+Ok(token)
 }
 
 pub async fn create_user(con: &Pool<Postgres>, user: &User) -> Result<(), sqlx::Error> {

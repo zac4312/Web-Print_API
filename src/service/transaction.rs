@@ -4,6 +4,19 @@ use uuid::Uuid;
 
 use crate::{ dto::{order, vendor::ChooseVendor}, err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy } };
 
+pub async fn get_reciept(id: String, con: &Pool<Postgres>) -> Result<String, sqlx::Error> {
+    let path = sqlx::query!(
+        "
+        Select reciept from orders
+        Where pub_id = $1 and 
+        ", id
+        )
+        .fetch_one(con)
+        .await?;
+
+    Ok(path.reciept.unwrap_or("path not wokring".to_string()))
+} 
+
 pub async fn get_gcash_path(pub_id: String, con: &Pool<Postgres>) -> Result<String, sqlx::Error>{
     let vendor = sqlx::query!(
         "
@@ -23,7 +36,7 @@ pub async fn store_reciept(pub_id: String, reciept: &String, con: &Pool<Postgres
         UPDATE orders
         SET reciept = $1
         WHERE pub_id = $2; 
-        ", pub_id, reciept)
+        ", reciept, pub_id)
         .execute(con)
         .await?;
 
@@ -85,3 +98,5 @@ pub async fn create_order(con: &Pool<Postgres>, order: &Order) -> Result<(), Tra
 
     Ok(())
 }
+
+

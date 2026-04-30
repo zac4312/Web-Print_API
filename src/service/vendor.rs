@@ -1,10 +1,12 @@
+use chrono::{Duration, Utc};
+use jsonwebtoken::{EncodingKey, Header, encode};
 use sqlx::{Pool, Postgres, Result, postgres::PgRow};
 
-use crate::{dto::vendor::{GetVendors, HandlingOrders, OwnedOrders, VendorHome}, err::{TransactionErr, VendorErr}, models::vendors::{Vacancy, Vendor}};
+use crate::{dto::{jwt::Claims, vendor::{GetVendors, HandlingOrders, OwnedOrders, VendorHome}}, err::{TransactionErr, VendorErr}, models::vendors::{Vacancy, Vendor}};
 
 //todo(make paid)
 
-pub async fn set_Ostatus_completed(con: &Pool<Postgres>, order: String) -> Result<(), sqlx::Error> {
+pub async fn set_o_status_completed(con: &Pool<Postgres>, order: String) -> Result<(), sqlx::Error> {
     sqlx::query!(
         "
     UPDATE orders
@@ -17,7 +19,7 @@ pub async fn set_Ostatus_completed(con: &Pool<Postgres>, order: String) -> Resul
     Ok(())
 }
 
-pub async fn set_Ostatus_claimed(con: &Pool<Postgres>, order: String) -> Result<(), sqlx::Error> {
+pub async fn set_o_status_claimed(con: &Pool<Postgres>, order: String) -> Result<(), sqlx::Error> {
     sqlx::query!(
         "
     UPDATE orders
@@ -244,5 +246,13 @@ pub async fn vendor_login(con: &Pool<Postgres>, pw: String) -> Result<String, sq
     .fetch_one(con)
     .await?;
 
-   Ok(login.pub_id) 
+    let key = b"secret";
+    let claim = Claims {
+        sub: login.pub_id,
+        exp: (Utc::now() + Duration::hours(10)).timestamp() as usize
+    };
+
+    let token = encode(&Header::default(), &claim, &EncodingKey::from_secret(key)).unwrap();
+
+   Ok(token) 
 }

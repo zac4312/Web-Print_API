@@ -15,7 +15,6 @@ pub struct CreateOrder {
     pub copies: u32,
     pub print_size: Size,
     pub color: bool,
-    pub user: String,
     pub vendor: String,
     pub file: String,
     pub total: BigDecimal,

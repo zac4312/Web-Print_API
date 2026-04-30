@@ -24,7 +24,8 @@ pub struct HandlingOrders {
     pub status: State,
     pub name: String,
     pub file_path: String,
-    pub reciept: Option<String>
+    pub reciept: Option<String>,
+    pub pub_id: String
 }
 
 #[derive(Serialize, FromRow)]
