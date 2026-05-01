@@ -86,6 +86,14 @@
 * JS Integration
 
         |- clone: https://github.com/zac4312/Web-Print_JS-Integration.git
+* Server Setup
+        
+        | Install XAMPP
+        | Follow Installation Process
+        | Copy front end files to htdocs ( cp .\path\to\front-end\directory\* \xampp\htdocs\ )
+        | Open XAMPP control Panel 
+            |- only click apache (do not enable mysql)
+        |- open http://localhost:3000/
         
 (*Note: any changes to the code will not be possible to push, for push request please message me for access)
     
