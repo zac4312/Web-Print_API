@@ -1,9 +1,10 @@
 use axum::{Json, Router, extract::{Multipart, Path}, http::{HeaderMap, StatusCode, header}, routing::{get, post}};
 use axum_macros::debug_handler;
+use bigdecimal::BigDecimal;
 use chrono::Local;
 use tokio::{fs, io::AsyncWriteExt};
 
-use crate::{db::{self, connect}, dto::{file::CreateFileOut, order::{CreateOrder, VendorGcash}, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, create_order, get_gcash_path, get_reciept, store_reciept}, vendor::get_vendor}, utils::validate_token};
+use crate::{db::{self, connect}, dto::{file::CreateFileOut, order::{CreateOrder, OrderData, VendorGcash}, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, create_order, get_gcash_path, get_reciept, get_total, store_reciept}, vendor::get_vendor}, utils::validate_token};
 
 pub fn route() -> Router {
     Router::new()
@@ -11,9 +12,16 @@ pub fn route() -> Router {
         .route("/listvendors", get(list_vendors))
         .route("/choosevendor", post(route_choose_vendor))
         .route("/createorder", post(post_order))
-        .route("/{pub_id}/submit_reciept", post(pay_order)) //change to recieve id from paylaod
-        .route("/{pub_id}/gcash", get(see_gcash)) //change to recieve id from paylaod
-        .route("/{pub_id}/reciept", get(see_reciept))                                                  
+        .route("/{pub_id}/submit_reciept", post(pay_order))         
+        .route("/{pub_id}/gcash", get(see_gcash))  
+        .route("/{pub_id}/reciept", get(see_reciept))
+        .route("/total", post(total))
+}
+
+#[debug_handler]
+async fn total(Json(order_data): Json<OrderData>) -> (StatusCode, Json<BigDecimal>) {
+    let con = connect().await.unwrap();  let total = get_total(&con, order_data.vendor, order_data.color, order_data.copies).await.unwrap();
+    (StatusCode::OK, Json(total))
 }
 
 async fn see_reciept(Path(pub_id): Path<String>) ->  (StatusCode, HeaderMap, Vec<u8>) {
@@ -26,23 +34,30 @@ async fn see_reciept(Path(pub_id): Path<String>) ->  (StatusCode, HeaderMap, Vec
         "image/png".parse().unwrap()
     );
 
-    let data = fs::read(filepath).await.unwrap();
-
-    (StatusCode::OK, headers, data)
+    let data = fs::read(filepath).await;
+    match data {
+        Ok(path) => { return (StatusCode::OK, headers, path) },
+        Err(_) => { return (StatusCode::OK, headers, vec![0]) }
+    }
+ 
 }
 
 #[debug_handler]
 async fn see_gcash(Path(pub_id): Path<String>) -> (StatusCode, HeaderMap, Vec<u8> ){
         let con = connect().await.unwrap(); let file_path = get_gcash_path(pub_id, &con).await.unwrap();
-        let data = fs::read(file_path).await.unwrap();
-        
+
         let mut headers = HeaderMap::new();
         
         headers.insert(
             header::CONTENT_TYPE,
             "image/png".parse().unwrap()
         );
-         (StatusCode::OK, headers, data)
+
+        let data = fs::read(file_path).await;
+        match data {
+            Ok(path) => { return (StatusCode::OK, headers, path) },
+            Err(_) => { return (StatusCode::OK, headers, vec![0]) }
+        }
 }
 
 #[debug_handler]

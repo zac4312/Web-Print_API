@@ -1,14 +1,40 @@
-use bigdecimal::{ToPrimitive};
+use bigdecimal::{BigDecimal, ToPrimitive};
 use sqlx::{Pool, Postgres, Result, Transaction};
 use uuid::Uuid;
 
-use crate::{ dto::{order, vendor::ChooseVendor}, err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy } };
+use crate::{ dto::{order, vendor::ChooseVendor}, err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy }};
+
+pub async fn get_total(con: &Pool<Postgres>, pub_id: String, color: bool, copies: BigDecimal) -> Result<BigDecimal, sqlx::Error> {
+    if color == true {
+       let rate = sqlx::query!(
+           "
+           Select clrd_rate from vendors
+           where pub_id = $1
+           ", pub_id
+           ) 
+           .fetch_one(con).await?;
+        
+        let total = copies * rate.clrd_rate;
+        Ok(total)
+    } else {
+        let rate = sqlx::query!(
+            "
+            Select bw_rate from vendors
+            where pub_id = $1
+            ", pub_id
+           ) 
+           .fetch_one(con).await?;
+
+        let total = copies * rate.bw_rate;
+        Ok(total)
+    }
+}
 
 pub async fn get_reciept(id: String, con: &Pool<Postgres>) -> Result<String, sqlx::Error> {
     let path = sqlx::query!(
         "
         Select reciept from orders
-        Where pub_id = $1 and 
+        Where pub_id = $1 
         ", id
         )
         .fetch_one(con)
@@ -33,7 +59,7 @@ pub async fn get_gcash_path(pub_id: String, con: &Pool<Postgres>) -> Result<Stri
 pub async fn store_reciept(pub_id: String, reciept: &String, con: &Pool<Postgres>) -> Result<(), sqlx::Error> {
     sqlx::query!(
         "
-        UPDATE orders
+        UPDATE orders 
         SET reciept = $1
         WHERE pub_id = $2; 
         ", reciept, pub_id)
@@ -60,7 +86,7 @@ pub async fn store_reciept(pub_id: String, reciept: &String, con: &Pool<Postgres
 
 pub async fn attach_file(con: &Pool<Postgres>, file: &FileObj) -> Result<(), TransactionErr> {
       sqlx::query_file!("sql_queries/choose_file.sql", file.file_path, file.file_size.to_i64(), file.mime_type, file.pub_id)
-            .fetch_one(con)
+        .fetch_one(con)
             .await?;      
 
     Ok(())
