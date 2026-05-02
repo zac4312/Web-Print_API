@@ -4,6 +4,11 @@ use sqlx::prelude::FromRow;
 
 use crate::models::transaction_obj::{Size, State};
 
+#[derive(Deserialize)]
+pub struct OrderQuery {
+    pub state: Option<State>
+}
+
 #[derive(Debug, Deserialize)]
 pub struct OrderData {
     pub copies: BigDecimal,

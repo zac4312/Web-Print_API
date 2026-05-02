@@ -1,7 +1,7 @@
-use axum::{Json, Router, extract::{Multipart, Path}, http::{HeaderMap, StatusCode, header}, routing::{get, post}};
+use axum::{Json, Router, extract::{Multipart, Query}, http::{HeaderMap, StatusCode, header}, routing::{get, post}};
 use axum_macros::debug_handler;
 use tokio::{fs, io::AsyncWriteExt};
-use crate::{db::connect, dto::{file::VendorDownload, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_home, list_claimed_orders, list_completed_orders, list_handling_orders, list_orders, list_rejected_orders, reject_order, set_o_status_claimed, set_o_status_completed, vendor_login}, utils::{get_token, validate_token}};
+use crate::{db::connect, dto::{file::VendorDownload, order::OrderQuery, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_home, list_accepted_orders, list_claimed_orders, list_completed_orders, list_orders, list_paid_orders, list_rejected_orders, reject_order, set_o_status_claimed, set_o_status_completed, set_o_status_paid, vendor_login}, utils::{get_token, validate_token}};
 
 pub fn route() -> Router {
     Router::new()
@@ -11,15 +11,50 @@ pub fn route() -> Router {
         .route("/login", post(vendor_login_attempt)) // DONE roken
         .route("/home", get(vendor_home)) // DONE token
         .route("/change_status", post(change_status)) // DONE
-        .route("/orders", get(see_orders)) //DONE 
+        .route("/orders", get(see_pending_orders)) //DONE 
         .route("/accept", post(accept_order_route)) //DONE
         .route("/reject", post(reject_order_route)) //DONE
-        .route("/handlingorders", get(accepted_orders))
-        .route("/rejected_orders", get(rejected_orders)) 
-        .route("/claimed_orders", get(claimed_orders))
-        .route("/completed_orders", get(completed_orders))
         .route("/set_claimed", post(edit_o_status_claimed))
         .route("/set_completed", post(edit_o_status_completed))
+        .route("/set_paid", post(edit_o_status_paid))
+        .route("/handling_orders", get(handling_orders)) // change to qeury
+}
+
+async fn handling_orders(Query(status): Query<OrderQuery>, header: HeaderMap) -> (StatusCode, Json<Vec<HandlingOrders>>) {
+    let token = get_token(header).unwrap(); let claim = validate_token(token).unwrap(); let con = connect().await.unwrap();
+    
+    match status.state {
+       Some(State::Paid) => { 
+           let paid_order = list_paid_orders(&con, claim.claims.sub).await.unwrap(); 
+            (StatusCode::OK, Json(paid_order))
+       },
+
+       Some(State::Claimed) => {
+           let claimed_orders = list_claimed_orders(&con, &claim.claims.sub).await.unwrap();
+            (StatusCode::OK, Json(claimed_orders))
+       },
+
+       Some(State::Accepted) => {
+           let accepted_orders = list_accepted_orders(&con, &claim.claims.sub).await.unwrap();
+            (StatusCode::OK, Json(accepted_orders))
+        },
+       Some(State::Rejected) => {
+           let rejected_orders =  list_rejected_orders(&con, &claim.claims.sub).await.unwrap();
+            (StatusCode::OK, Json(rejected_orders))
+       },
+       Some(State::Completed) => {
+           let completed_orders = list_completed_orders(&con, &claim.claims.sub).await.unwrap();
+            (StatusCode::OK, Json(completed_orders))
+       },
+        
+       _ => (StatusCode::BAD_REQUEST ,vec![].into())
+    }
+}
+
+
+async fn edit_o_status_paid(Json(order): Json<String>) -> StatusCode {
+    let con = connect().await.unwrap(); set_o_status_paid(&con, order).await.unwrap();
+    StatusCode::OK
 }
 
 async fn edit_o_status_completed(Json(order): Json<String>) -> StatusCode {
@@ -30,34 +65,6 @@ async fn edit_o_status_completed(Json(order): Json<String>) -> StatusCode {
 async fn edit_o_status_claimed(Json(order): Json<String>) -> StatusCode {
     let con = connect().await.unwrap(); set_o_status_claimed(&con, order).await.unwrap();
 StatusCode::OK
-}
-
-async fn completed_orders(header: HeaderMap) -> (StatusCode, Json<Vec<HandlingOrders>>) {
-    let token = get_token(header).unwrap(); let claim = validate_token(token).unwrap();
-
-    let con = connect().await.unwrap(); let orders = list_completed_orders(&con, &claim.claims.sub).await.unwrap();
-    (StatusCode::OK, Json(orders))
-}
-
-async fn claimed_orders(header: HeaderMap) -> (StatusCode, Json<Vec<HandlingOrders>>) {
-    let token = get_token(header).unwrap(); let claim = validate_token(token).unwrap();
-
-    let con = connect().await.unwrap(); let orders = list_claimed_orders(&con, &claim.claims.sub).await.unwrap();
-    (StatusCode::OK, Json(orders))
-}
-
-async fn rejected_orders(header: HeaderMap) -> (StatusCode, Json<Vec<HandlingOrders>>) {
-    let token = get_token(header).unwrap(); let claim = validate_token(token).unwrap();
-
-    let con = connect().await.unwrap(); let orders = list_rejected_orders(&con, &claim.claims.sub).await.unwrap();
-    (StatusCode::OK, Json(orders))
-}
-
-async fn accepted_orders(header: HeaderMap) -> (StatusCode, Json<Vec<HandlingOrders>>) {
-    let token = get_token(header).unwrap(); let claim = validate_token(token).unwrap();
-
-    let con = connect().await.unwrap(); let orders  = list_handling_orders(&con, &claim.claims.sub).await.unwrap();
-    (StatusCode::OK, Json(orders))
 }
 
 #[debug_handler]
@@ -72,7 +79,7 @@ async fn reject_order_route(Json(payload): Json<String>) -> (StatusCode, Json<St
 }
 
 #[debug_handler]
-async fn see_orders(header: HeaderMap) -> (StatusCode, Json<Vec<OwnedOrders>>) {
+async fn see_pending_orders(header: HeaderMap) -> (StatusCode, Json<Vec<OwnedOrders>>) {
     let token = get_token(header).unwrap(); println!("- {}", &token); let claim = validate_token(token).unwrap();
  
     let con = connect().await.unwrap(); let orders = list_orders(&con, &claim.claims.sub).await.unwrap();

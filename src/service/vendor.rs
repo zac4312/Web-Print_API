@@ -1,10 +1,21 @@
 use chrono::{Duration, Utc};
 use jsonwebtoken::{EncodingKey, Header, encode};
-use sqlx::{Pool, Postgres, Result, postgres::PgRow};
+use sqlx::{Pool, Postgres, Result};
 
-use crate::{dto::{jwt::Claims, vendor::{GetVendors, HandlingOrders, OwnedOrders, VendorHome}}, err::{TransactionErr, VendorErr}, models::vendors::{Vacancy, Vendor}};
+use crate::{dto::{jwt::Claims, vendor::{GetVendors, HandlingOrders, OwnedOrders, VendorHome}}, err::{VendorErr}, models::vendors::{Vacancy, Vendor}};
 
-//todo(make paid)
+pub async fn set_o_status_paid(con: &Pool<Postgres>, order: String) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        "
+    UPDATE orders
+    set status = 'paid'
+    WHERE pub_id = $1
+        "
+    , order)
+        .execute(con)
+        .await?;
+    Ok(())
+}
 
 pub async fn set_o_status_completed(con: &Pool<Postgres>, order: String) -> Result<(), sqlx::Error> {
     sqlx::query!(
@@ -30,6 +41,54 @@ pub async fn set_o_status_claimed(con: &Pool<Postgres>, order: String) -> Result
         .execute(con)
         .await?;
     Ok(())
+}
+
+pub async fn list_accepted_orders(con: &Pool<Postgres>, ui: &String) -> Result<Vec<HandlingOrders>, sqlx::Error> {
+   let orders = sqlx::query_as::<_, HandlingOrders>(
+       "
+        SELECT o.color, o.copies, o.print_size, o.pub_id, o.status, o.total, u.name, f.file_path, o.reciept
+
+        FROM orders o
+        LEFT JOIN vendors v
+        ON o.for_vendor = v.vendor_id
+        LEFT JOIN users u
+        ON u.user_id = o.for_user
+        LEFT JOIN files f
+        ON f.file_id = o.file_id
+        WHERE 
+        v.pub_id = $1
+        and
+        o.status = 'accepted';        
+       ") .bind(ui)
+       .fetch_all(con)
+       .await?;
+
+    Ok(orders)
+}
+
+
+pub async fn list_paid_orders(con: &Pool<Postgres>, pub_id: String) -> Result<Vec<HandlingOrders>, sqlx::Error> {
+    let orders = sqlx::query_as::<_, HandlingOrders>(
+       "
+        SELECT o.color, o.copies, o.print_size, o.pub_id, o.status, o.total, u.name, f.file_path, o.reciept
+
+        FROM orders o
+        LEFT JOIN vendors v
+        ON o.for_vendor = v.vendor_id
+        LEFT JOIN users u
+        ON u.user_id = o.for_user
+        LEFT JOIN files f
+        ON f.file_id = o.file_id
+        WHERE 
+        v.pub_id = $1
+        and
+        o.status = 'paid';        
+       ") .bind(pub_id)
+       .fetch_all(con)
+       .await?;
+
+    Ok(orders)
+   
 }
 
 pub async fn list_claimed_orders(con: &Pool<Postgres>, ui: &String) -> Result<Vec<HandlingOrders>, sqlx::Error> {
@@ -185,29 +244,6 @@ pub async fn list_orders(con: &Pool<Postgres>, ui: &String) -> Result<Vec<OwnedO
         ").bind(ui)
         .fetch_all(con)
         .await?;
-
-    Ok(orders)
-}
-
-pub async fn list_handling_orders(con: &Pool<Postgres>, ui: &String) -> Result<Vec<HandlingOrders>, sqlx::Error> {
-   let orders = sqlx::query_as::<_, HandlingOrders>(
-       "
-        SELECT o.color, o.copies, o.print_size, o.pub_id, o.status, o.total, u.name, f.file_path, o.reciept
-
-        FROM orders o
-        LEFT JOIN vendors v
-        ON o.for_vendor = v.vendor_id
-        LEFT JOIN users u
-        ON u.user_id = o.for_user
-        LEFT JOIN files f
-        ON f.file_id = o.file_id
-        WHERE 
-        v.pub_id = $1
-        and
-        o.status = 'accepted';        
-       ") .bind(ui)
-       .fetch_all(con)
-       .await?;
 
     Ok(orders)
 }
