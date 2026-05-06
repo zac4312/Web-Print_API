@@ -38,6 +38,7 @@ pub struct CreateUser {
 
 #[derive(Deserialize)]
 pub struct LoginUser {
+    pub name: String,
     pub pw: String,
 }
 

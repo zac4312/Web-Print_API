@@ -4,6 +4,19 @@ use sqlx::{Pool, Postgres, Result};
 
 use crate::{dto::{jwt::Claims, vendor::{GetVendors, HandlingOrders, OwnedOrders, VendorHome}}, err::{VendorErr}, models::vendors::{Vacancy, Vendor}};
 
+pub async fn logout_vendor(con: &Pool<Postgres>, pub_id: &String) -> Result<(), sqlx::Error>{
+    sqlx::query(
+        "
+        Update vendors 
+        set availability = 'closed'
+        where pub_id = $1
+        ") .bind(pub_id)
+        .execute(con)
+        .await?;
+
+    Ok(())
+}
+
 pub async fn set_o_status_paid(con: &Pool<Postgres>, order: String) -> Result<(), sqlx::Error> {
     sqlx::query!(
         "
@@ -201,22 +214,24 @@ pub async fn get_vendor_home(con: &Pool<Postgres>, pub_id: String) -> Result<Vec
     Ok(location)
 }
 
-pub async fn create_vendor(con: &Pool<Postgres>, vendor: Vendor) -> Result<(), sqlx::Error> {
+pub async fn create_vendor(con: &Pool<Postgres>, vendor: &Vendor) -> Result<(), sqlx::Error> {
    sqlx::query(
         "
         INSERT INTO vendors (name, pw_hash, email, bw_rate, clrd_rate, lat, long, availability, pub_id, brand, gcash) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8::vacancy, $9, $10, $11);
         ")
 
-       .bind(vendor.name) .bind(vendor.pw_hash) .bind(vendor.email) .bind(vendor.bw_rate) .bind(vendor.clrd_rate) .bind(vendor.lat) .bind(vendor.long) .bind(vendor.availability) .bind(vendor.pub_id) .bind(vendor.brand) .bind(vendor.gcash)
+       .bind(&vendor.name) .bind(&vendor.pw_hash) .bind(&vendor.email) .bind(&vendor.bw_rate) .bind(&vendor.clrd_rate) .bind(vendor.lat) .bind(vendor.long) .bind(&vendor.availability) .bind(&vendor.pub_id) .bind(&vendor.brand) .bind(&vendor.gcash)
     .execute(con)
-    .await?; 
+    .await?;
+
+
 
     Ok(())
 }
 
 pub async fn get_vendor(con: &Pool<Postgres>) -> Result<Vec<GetVendors>, sqlx::Error> {
-     let act = sqlx::query_as::<_, GetVendors>("SELECT pub_id, email, bw_rate, clrd_rate, lat, long, availability, brand FROM vendors")
+     let act = sqlx::query_as::<_, GetVendors>("SELECT pub_id, email, bw_rate, clrd_rate, lat, long, availability, brand FROM vendors where availability != 'closed'")
 
 
     .fetch_all(con)
@@ -272,12 +287,12 @@ pub async fn reject_order(con: &Pool<Postgres>, ui: String) -> Result<String, Ve
     Ok(reject_query.pub_id)
 }
 
-pub async fn vendor_login(con: &Pool<Postgres>, pw: String) -> Result<String, sqlx::Error> {
+pub async fn vendor_login(con: &Pool<Postgres>, name: &String, pw: &String) -> Result<String, sqlx::Error> {
     let login = sqlx::query!(
         "
         SELECT pub_id FROM vendors 
-        WHERE pw_hash = $1
-        ", pw
+        WHERE pw_hash = $1 and name = $2
+        ", pw, name
     )
     .fetch_one(con)
     .await?;

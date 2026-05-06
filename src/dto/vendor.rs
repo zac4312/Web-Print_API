@@ -60,7 +60,7 @@ pub struct CreateVendor {
 #[derive(Deserialize)]
 pub struct VendorLogin {
     pub pw: String,
-    pub username: String
+    pub name: String
 }
 
 #[derive(FromRow, Serialize)]

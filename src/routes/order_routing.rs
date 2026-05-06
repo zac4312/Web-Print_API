@@ -62,8 +62,20 @@ async fn see_gcash(Path(pub_id): Path<String>) -> (StatusCode, HeaderMap, Vec<u8
 
 #[debug_handler]
 async fn pay_order(pub_id: Path<String>, mut file: Multipart) -> StatusCode {
-     if let Some(field) = file.next_field().await.unwrap() {
-        let name = field.file_name().unwrap_or("frdel").to_string(); let file_type = field.content_type().map(|ct| ct.to_string()); let data = field.bytes().await.unwrap();
+    let allowed_types = vec!["image/png", "image/jpeg", "image/jpg"];
+
+    if let Some(field) = file.next_field().await.unwrap() {
+        let name = field.file_name().unwrap_or("frdel").to_string(); 
+        
+        let mime = field.content_type().map(|ct| ct.to_string()).ok_or(StatusCode::BAD_REQUEST).unwrap();
+
+        if !allowed_types.iter().any(|t| *t == mime) {
+            println!("{}", &mime);
+            return StatusCode::UNPROCESSABLE_ENTITY;
+        };
+
+        let data = field.bytes().await.unwrap();
+
         let file_path = format!("./reciepts/{}-{}", pub_id.to_string(), name);  
         let mut file = fs::File::create(&file_path).await.unwrap();
 
@@ -76,16 +88,26 @@ async fn pay_order(pub_id: Path<String>, mut file: Multipart) -> StatusCode {
 }
 
 #[debug_handler]
-async fn post_file(mut file: Multipart) -> Json<String> {
+async fn post_file(mut file: Multipart) -> (StatusCode ,Json<String>) {
+    let allowed_types = vec!["image/png", "image/jpeg", "image/jpg", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/pdf"];
+    
     if let Some(field) = file.next_field().await.unwrap() {
-        let name = field.file_name().unwrap_or("frdel").to_string(); let file_type = field.content_type().map(|ct| ct.to_string()); let data = field.bytes().await.unwrap();
+        let name = field.file_name().unwrap_or("frdel").to_string(); 
+
+        let file_type = field.content_type().map(|ct| ct.to_string()).ok_or(StatusCode::BAD_REQUEST).unwrap();
+
+        if !allowed_types.iter().any(|t| *t == file_type) {
+            return (StatusCode::UNPROCESSABLE_ENTITY, Json("failed to upload".to_string()));
+        }
+
+        let data = field.bytes().await.unwrap();
 
         let file_size = data.len();  let file_path = format!("./uploads/{}",name);  
         
         let mut file = fs::File::create(&file_path).await.unwrap();
         file.write_all(&data).await.unwrap();
 
-    let file_obj = FileObj::new(file_path, file_size.try_into().unwrap(), file_type.unwrap_or("failed".to_string()));
+    let file_obj = FileObj::new(file_path, file_size.try_into().unwrap(), file_type);
 
     let con = db::connect().await.unwrap(); 
     attach_file(&con, &file_obj).await.unwrap();
@@ -95,9 +117,11 @@ async fn post_file(mut file: Multipart) -> Json<String> {
             mime_type: file_obj.mime_type,
             pub_id: file_obj.pub_id,
         };
-    return Json(file_out.pub_id);
+
+        return (StatusCode::OK ,Json(file_out.pub_id));
+
     } else {
-        return Json("failed".to_string());
+        return (StatusCode::BAD_REQUEST, Json("failed".to_string()));
     }     
 }
 
