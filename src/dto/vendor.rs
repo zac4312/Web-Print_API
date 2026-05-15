@@ -1,4 +1,5 @@
 use bigdecimal::BigDecimal;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{prelude::FromRow};
 
@@ -25,7 +26,11 @@ pub struct HandlingOrders {
     pub name: String,
     pub file_path: String,
     pub reciept: Option<String>,
-    pub pub_id: String
+    pub pub_id: String,
+    pub created_at: Option<DateTime<Utc>>,
+    pub paid_at: Option<DateTime<Utc>>,
+    pub claimed_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>
 }
 
 #[derive(Serialize, FromRow)]
@@ -66,5 +71,6 @@ pub struct VendorLogin {
 #[derive(FromRow, Serialize)]
 pub struct VendorHome {
     pub lat: f64,
-    pub long: f64
+    pub long: f64,
+    pub vacancy: Vacancy
 }

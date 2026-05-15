@@ -4,16 +4,40 @@ use sqlx::{Pool, Postgres};
 
 use crate::{dto::{jwt::Claims, user::{GetUser, MadeOrders}}, models::{transaction_obj::State, users::User}, service::transaction::map_user};
 
+pub async fn all_orders(con: &Pool<Postgres>, user: String) -> Result<Vec<MadeOrders>, sqlx::Error> {
+    let mut tx = con.begin().await?;
+    let user_id = map_user(&mut tx, &user).await?;
+
+    let request = sqlx::query_as::<_, MadeOrders>(
+        "
+        select o.pub_id as o_pub_id ,o.total, o.status, o.copies, o.print_size, o.color, v.pub_id as v_pub_id, v.brand, oh.paid_at, oh.claimed_at, oh.completed_at, oh.created_at
+
+        from orders o
+        left join vendors v
+        on o.for_vendor = v.vendor_id
+        left join order_history oh
+        on o.order_id = oh.order_of
+        where o.for_user = $1 and o.status != 'completed' 
+        ") .bind(user_id) 
+        .fetch_all(con)
+        .await?;
+
+    Ok(request)
+}
+
 pub async fn made_orders(con: &Pool<Postgres>, user: String, state: State) -> Result<Vec<MadeOrders>, sqlx::Error> {
     let mut tx = con.begin().await?;
     let user_id = map_user(&mut tx, &user).await?;
 
     let request = sqlx::query_as::<_, MadeOrders>(
         "
-        select o.pub_id as o_pub_id ,o.total, o.status, o.copies, o.print_size, o.color, v.pub_id as v_pub_id, v.brand
+        select o.pub_id as o_pub_id ,o.total, o.status, o.copies, o.print_size, o.color, v.pub_id as v_pub_id, v.brand, oh.paid_at, oh.claimed_at, oh.completed_at, oh.created_at
+
         from orders o
         left join vendors v
         on o.for_vendor = v.vendor_id
+        left join order_history oh
+        on o.order_id = oh.order_of
         where o.for_user = $1 and o.status = $2
         ") .bind(user_id) .bind(state)
         .fetch_all(con)

@@ -1,4 +1,5 @@
 use bigdecimal::BigDecimal;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
@@ -13,7 +14,11 @@ pub struct MadeOrders {
     pub status: State,
     pub o_pub_id: String,
     pub v_pub_id: String,
-    pub brand: String
+    pub brand: String,
+    pub created_at: Option<DateTime<Utc>>,
+    pub paid_at: Option<DateTime<Utc>>,
+    pub claimed_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>
 }
 
 #[derive(FromRow, Debug, Serialize)]

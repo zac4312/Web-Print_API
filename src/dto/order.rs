@@ -4,7 +4,7 @@ use sqlx::prelude::FromRow;
 
 use crate::models::transaction_obj::{Size, State};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct OrderQuery {
     pub state: Option<State>
 }

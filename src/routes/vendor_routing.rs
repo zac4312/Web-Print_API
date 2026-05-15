@@ -1,7 +1,7 @@
 use axum::{Json, Router, extract::{Multipart, Query}, http::{HeaderMap, StatusCode, header}, routing::{get, post}};
 use axum_macros::debug_handler;
 use tokio::{fs, io::AsyncWriteExt};
-use crate::{db::connect, dto::{file::VendorDownload, order::OrderQuery, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_home, list_accepted_orders, list_claimed_orders, list_completed_orders, list_orders, list_paid_orders, list_rejected_orders, logout_vendor, reject_order, set_o_status_claimed, set_o_status_completed, set_o_status_paid, vendor_login}, utils::{get_token, validate_token}};
+use crate::{db::connect, dto::{file::VendorDownload, order::OrderQuery, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_home, list_handling_orders, list_orders, logout_vendor, reject_order, set_o_status_claimed, set_o_status_completed, set_o_status_paid, set_o_status_printed, vendor_login}, utils::{get_token, validate_token}};
 
 pub fn route() -> Router {
     Router::new()
@@ -17,6 +17,7 @@ pub fn route() -> Router {
         .route("/set_claimed", post(edit_o_status_claimed))
         .route("/set_completed", post(edit_o_status_completed))
         .route("/set_paid", post(edit_o_status_paid))
+        .route("/set_printed", post(edit_o_status_printed))
         .route("/handling_orders", get(handling_orders)) 
         .route("/logout", get(logout))
 }
@@ -34,32 +35,41 @@ async fn handling_orders(Query(status): Query<OrderQuery>, header: HeaderMap) ->
     
     match status.state {
        Some(State::Paid) => { 
-           let paid_order = list_paid_orders(&con, claim.claims.sub).await.unwrap(); 
-            (StatusCode::OK, Json(paid_order))
+           let paid_order = list_handling_orders(&con, &claim.claims.sub, status.state.unwrap()).await.unwrap();
+               (StatusCode::OK, Json(paid_order))
        },
 
        Some(State::Claimed) => {
-           let claimed_orders = list_claimed_orders(&con, &claim.claims.sub).await.unwrap();
-            (StatusCode::OK, Json(claimed_orders))
+           let claimed_orders = list_handling_orders(&con, &claim.claims.sub, status.state.unwrap()).await.unwrap();
+               (StatusCode::OK, Json(claimed_orders))
        },
 
        Some(State::Accepted) => {
-           let accepted_orders = list_accepted_orders(&con, &claim.claims.sub).await.unwrap();
+           let accepted_orders = list_handling_orders(&con, &claim.claims.sub, status.state.unwrap()).await.unwrap();
             (StatusCode::OK, Json(accepted_orders))
         },
        Some(State::Rejected) => {
-           let rejected_orders =  list_rejected_orders(&con, &claim.claims.sub).await.unwrap();
-            (StatusCode::OK, Json(rejected_orders))
+           let rejected_orders =  list_handling_orders(&con, &claim.claims.sub, status.state.unwrap()).await.unwrap();
+               (StatusCode::OK, Json(rejected_orders))
        },
        Some(State::Completed) => {
-           let completed_orders = list_completed_orders(&con, &claim.claims.sub).await.unwrap();
+           let completed_orders = list_handling_orders(&con, &claim.claims.sub, status.state.unwrap()).await.unwrap();
             (StatusCode::OK, Json(completed_orders))
        },
+
+       Some(State::Printed) => {
+            let printed = list_handling_orders(&con, &claim.claims.sub, status.state.unwrap()).await.unwrap();
+            (StatusCode::OK, Json(printed))
+       }
         
        _ => (StatusCode::BAD_REQUEST ,vec![].into())
     }
 }
 
+async fn edit_o_status_printed(Json(order): Json<String>) -> StatusCode {
+    let con = connect().await.unwrap(); set_o_status_printed(&con, order).await.unwrap();
+    StatusCode::OK
+}
 
 async fn edit_o_status_paid(Json(order): Json<String>) -> StatusCode {
     let con = connect().await.unwrap(); set_o_status_paid(&con, order).await.unwrap();

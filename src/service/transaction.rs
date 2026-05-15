@@ -69,21 +69,6 @@ pub async fn store_reciept(pub_id: String, reciept: &String, con: &Pool<Postgres
     Ok(())
 }
 
-/*pub async fn choose_vendor(con: &Pool<Postgres>, ui: &String) -> Result<String, TransactionErr>{
-    let query = sqlx::query!(
-    "
-    SELECT availability as Vacancy FROM vendors
-    where pub_id = $1;
-    ", ui)  
-        .fetch_one(con)
-        .await?;
-
-    if query.availability == Vacancy::Closed {return Err(TransactionErr::VendorUnavailable)}
-
-    Ok(query.pub_id)
-}*/
-
-
 pub async fn attach_file(con: &Pool<Postgres>, file: &FileObj) -> Result<(), TransactionErr> {
       sqlx::query_file!("sql_queries/choose_file.sql", file.file_path, file.file_size.to_i64(), file.mime_type, file.pub_id)
         .fetch_one(con)
@@ -107,22 +92,49 @@ pub async fn map_user(tx: &mut Transaction<'_, Postgres>, ui: &String) -> Result
     Ok(user_id.user_id) 
 }
 
-pub async fn create_order(con: &Pool<Postgres>, order: &Order) -> Result<(), TransactionErr> {
+pub async fn create_order(con: &Pool<Postgres>, order: &Order) -> Result<Uuid, TransactionErr> {
     let mut tx = con.begin().await?;
 
     let vendor = map_vendor(&mut tx, &order.target_shop).await?; let file = map_file(&mut tx, &order.file).await?; let user = map_user(&mut tx, &order.client).await?; 
 
-        sqlx::query_file!(
+        let order_id =  sqlx::query_file!(
             "sql_queries/create_order.sql",
             order.copies.to_owned().to_i16(), order.print_size.to_owned() as Size, order.color.to_owned(), file, order.pub_id.to_owned(), vendor, user, order.total.to_owned(), order.status.to_owned() as State 
         )
 
-        .execute(tx.as_mut())
+        .fetch_one(tx.as_mut())
         .await?;
 
     tx.commit().await?;
 
+    Ok(order_id.order_id)
+}
+
+pub async fn map_order(con: &Pool<Postgres>, pub_id: String) -> Result<Uuid, sqlx::Error> {
+    let order = sqlx::query!(
+        "
+        Select order_id from orders 
+        where pub_id = $1
+        ", pub_id
+    )
+        .fetch_one(con)
+        .await?;
+
+    Ok(order.order_id)
+}
+
+pub async fn date_order(con: &Pool<Postgres>, order_id: Uuid) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "
+        Insert Into order_history (order_of)
+        values ($1);
+        "
+    ) .bind(order_id)
+        .execute(con)
+        .await?;
+
     Ok(())
 }
+
 
 

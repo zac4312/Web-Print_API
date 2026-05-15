@@ -37,7 +37,8 @@ pub enum State {
     Claimed,
     Completed,
     Accepted,
-    Pending
+    Pending,
+    Printed
 }
  
 impl Order {

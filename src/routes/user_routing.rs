@@ -2,7 +2,7 @@ use axum::{Json, Router, extract::Query, http::StatusCode, routing::{get, post}}
 use axum_macros::debug_handler;
 use http::HeaderMap;
 
-use crate::{db::{self, connect}, dto::{order::OrderQuery, user::{CreateUser, CreateUserOut, LoginUser, MadeOrders}}, models::{transaction_obj::State, users::User}, service::user::{create_user, login_user, made_orders}, utils::{get_token, validate_token}};
+use crate::{db::{self, connect}, dto::{order::OrderQuery, user::{CreateUser, CreateUserOut, LoginUser, MadeOrders}}, models::{transaction_obj::State, users::User}, service::user::{all_orders, create_user, login_user, made_orders}, utils::{get_token, validate_token}};
 
 pub fn route() -> Router {
     Router::new()
@@ -49,7 +49,9 @@ async fn see_orders(Query(status): Query<OrderQuery>, header: HeaderMap) -> (Sta
                 return (StatusCode::OK, Json(complete_orders));
             },
 
-            None => {return (StatusCode::BAD_REQUEST, vec![].into());}
+            _ => { let all_orders = all_orders(&con, claim.claims.sub).await.unwrap();
+                      return (StatusCode::OK, Json(all_orders));
+                }
         }
 }
 

@@ -4,7 +4,7 @@ use bigdecimal::BigDecimal;
 use chrono::Local;
 use tokio::{fs, io::AsyncWriteExt};
 
-use crate::{db::{self, connect}, dto::{file::CreateFileOut, order::{CreateOrder, OrderData, VendorGcash}, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, create_order, get_gcash_path, get_reciept, get_total, store_reciept}, vendor::get_vendor}, utils::validate_token};
+use crate::{db::{self, connect}, dto::{file::CreateFileOut, order::{CreateOrder, OrderData, VendorGcash}, vendor::{ChooseVendor, GetVendors}}, models::transaction_obj::{FileObj, Order}, service::{transaction::{attach_file, create_order, date_order, get_gcash_path, get_reciept, get_total, store_reciept}, vendor::get_vendor}, utils::validate_token};
 
 pub fn route() -> Router {
     Router::new()
@@ -137,11 +137,7 @@ let choice = ChooseVendor { pub_id: payload.pub_id };
 
 Json(choice.pub_id)
 }
-/*async fn route_choose_vendor(Json(payload): Json<ChooseVendor>) -> Json<String> {
-    let con = db::connect().await.unwrap(); let choice = choose_vendor(&con, &payload.pub_id).await.unwrap(); 
-    
-    Json(choice.)
-}*/
+
 #[debug_handler]
 async fn post_order(headers: HeaderMap, Json(payload): Json<CreateOrder>) -> StatusCode {
     let auth_header = headers.get("authorization"); let auth_str = auth_header.unwrap().to_str().unwrap(); let token = auth_str.trim_start_matches("Bearer ").to_string();
@@ -152,7 +148,9 @@ async fn post_order(headers: HeaderMap, Json(payload): Json<CreateOrder>) -> Sta
     
 
     let order = Order::new(payload.copies, payload.print_size, payload.color, payload.file, payload.total, payload.vendor, user.claims.sub.to_string());
-    let con = db::connect().await.unwrap(); create_order(&con, &order).await.unwrap();
+    let con = db::connect().await.unwrap(); let order_id = create_order(&con, &order).await.unwrap(); date_order(&con, order_id).await.unwrap();
 
     StatusCode::OK
 }
+
+
