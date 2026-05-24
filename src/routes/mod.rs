@@ -27,7 +27,7 @@ pub fn route() -> Router {
 }
 
 pub async fn listener() -> TcpListener {
-    TcpListener::bind("0.0.0.0:3001")
+    TcpListener::bind("0.0.0.0:3003")
         .await.unwrap()
 }
 #[debug_handler]

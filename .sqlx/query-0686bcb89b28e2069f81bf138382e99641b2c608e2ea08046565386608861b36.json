@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        Select reciept from orders\n        Where pub_id = $1 \n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "reciept",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "0686bcb89b28e2069f81bf138382e99641b2c608e2ea08046565386608861b36"
+}

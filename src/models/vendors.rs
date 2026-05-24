@@ -24,7 +24,8 @@ pub struct Vendor {
     pub long: f64,
     pub availability: Vacancy,
     pub brand: String,
-    pub gcash: Option<String>
+    pub gcash: Option<String>,
+    pub number: Option<String>
 }
 
 impl Vendor {
@@ -35,9 +36,10 @@ impl Vendor {
                     clrd_rate: BigDecimal,
                     lat: f64,
                     long: f64,
+                    number: Option<String>,
                     brand: String) -> Self { 
 
-        Self {  pub_id: utils::generate_id(8) , name, pw_hash, email, bw_rate, clrd_rate, lat, long, availability: Vacancy::Available, brand, gcash: None }
+        Self {  pub_id: utils::generate_id(8) , name, pw_hash, email, bw_rate, clrd_rate, lat, long, availability: Vacancy::Available, brand, gcash: None, number }
     }
 }
 

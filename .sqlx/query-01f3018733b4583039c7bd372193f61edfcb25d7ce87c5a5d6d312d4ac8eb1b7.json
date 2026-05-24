@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n           Select clrd_rate from vendors\n           where pub_id = $1\n           ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "clrd_rate",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "01f3018733b4583039c7bd372193f61edfcb25d7ce87c5a5d6d312d4ac8eb1b7"
+}

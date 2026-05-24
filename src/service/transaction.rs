@@ -2,7 +2,7 @@ use bigdecimal::{BigDecimal, ToPrimitive};
 use sqlx::{Pool, Postgres, Result, Transaction};
 use uuid::Uuid;
 
-use crate::{ dto::{order, vendor::ChooseVendor}, err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State}, vendors::Vacancy }};
+use crate::{err::TransactionErr, models::{ transaction_obj::{FileObj, Order, Size, State} }};
 
 pub async fn get_total(con: &Pool<Postgres>, pub_id: String, color: bool, copies: BigDecimal) -> Result<BigDecimal, sqlx::Error> {
     if color == true {
@@ -79,16 +79,23 @@ pub async fn attach_file(con: &Pool<Postgres>, file: &FileObj) -> Result<(), Tra
 
 pub async fn map_file(tx: &mut Transaction<'_, Postgres>, ui: &String) -> Result<Uuid, sqlx::Error> {
     let file_id = sqlx::query!("Select file_id from files where pub_id = $1", ui).fetch_one(tx.as_mut()).await?;
+    
+    println!("file id: {}", &file_id.file_id);
+
     Ok(file_id.file_id) 
 }
 
 pub async fn map_vendor(tx: &mut Transaction<'_, Postgres>, ui: &String) -> Result<Uuid, sqlx::Error> {
     let vendor_id = sqlx::query!("Select vendor_id from vendors where pub_id = $1", ui).fetch_one(tx.as_mut()).await?;
+    println!("vendor id: {}", &vendor_id.vendor_id);
+
     Ok(vendor_id.vendor_id) 
 }
 
 pub async fn map_user(tx: &mut Transaction<'_, Postgres>, ui: &String) -> Result<Uuid, sqlx::Error> {
     let user_id = sqlx::query!("Select user_id from users where pub_id = $1", ui).fetch_one(tx.as_mut()).await?;
+    println!("user id: {}", user_id.user_id);
+
     Ok(user_id.user_id) 
 }
 

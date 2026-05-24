@@ -41,8 +41,8 @@ pub struct GetVendors {
     pub clrd_rate: BigDecimal,
     pub lat: f64,
     pub long: f64,
-    pub availability: Vacancy,
-    pub brand: String
+    pub brand: String,
+    pub number: Option<String>
 }
 
 #[derive(FromRow ,Deserialize, Serialize)]
@@ -60,6 +60,7 @@ pub struct CreateVendor {
     pub long: f64,
     pub brand: String,
     pub pw: String,
+    pub number: Option<String> 
 }
 
 #[derive(Deserialize)]

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n    UPDATE orders\n    set status = 'err'\n    WHERE pub_id = $1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1a5bd9d9631f938beca572ff7d60bc341372462644c19d2c2d70792d25e41c5c"
+}

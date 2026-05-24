@@ -1,7 +1,7 @@
 use axum::{Json, Router, extract::{Multipart, Query}, http::{HeaderMap, StatusCode, header}, routing::{get, post}};
 use axum_macros::debug_handler;
 use tokio::{fs, io::AsyncWriteExt};
-use crate::{db::connect, dto::{file::VendorDownload, order::OrderQuery, vendor::{ CreateVendor, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_home, list_handling_orders, list_orders, logout_vendor, reject_order, set_o_status_claimed, set_o_status_completed, set_o_status_paid, set_o_status_printed, vendor_login}, utils::{get_token, validate_token}};
+use crate::{db::connect, dto::{file::VendorDownload, order::OrderQuery, vendor::{ CreateVendor, GetVendors, HandlingOrders, OwnedOrders, VendorHome, VendorLogin}}, models::{transaction_obj::State, vendors::{self, Vendor}}, service::vendor::{accept_order, add_gcash, change_availability, create_vendor, get_vendor_details, get_vendor_home, list_handling_orders, list_orders, logout_vendor, reject_order, set_o_status_claimed, set_o_status_completed, set_o_status_paid, set_o_status_printed, vendor_login}, utils::{get_token, validate_token}};
 
 pub fn route() -> Router {
     Router::new()
@@ -20,9 +20,18 @@ pub fn route() -> Router {
         .route("/set_printed", post(edit_o_status_printed))
         .route("/handling_orders", get(handling_orders)) 
         .route("/logout", get(logout))
+        .route("/vendor_details", get(vendor_details))
 }
 
 #[debug_handler]
+
+async fn vendor_details(header: HeaderMap) -> (StatusCode, Json<Vec<GetVendors>>) {
+    let token = get_token(header).unwrap(); let claim = validate_token(token).unwrap();
+    let con = connect().await.unwrap(); let details = get_vendor_details(&con, &claim.claims.sub).await.unwrap();
+
+    (StatusCode::OK, Json(details))
+}
+
 async fn logout(header: HeaderMap) -> StatusCode {
     let token = get_token(header).unwrap(); let claim = validate_token(token).unwrap();
     let con = connect().await.unwrap(); logout_vendor(&con, &claim.claims.sub).await.unwrap();
@@ -154,7 +163,7 @@ async fn route_add_gcash (header: HeaderMap, mut gcash_qr: Multipart) -> (Status
 #[debug_handler]
 async fn new_vendor(Json(payload): Json<CreateVendor>) -> (StatusCode, Json<String>) {
 
-    let new_vendor = Vendor::new(payload.name, payload.pw, payload.email, payload.bw_rate, payload.clrd_rate, payload.lat, payload.long, payload.brand);
+    let new_vendor = Vendor::new(payload.name, payload.pw, payload.email, payload.bw_rate, payload.clrd_rate, payload.lat, payload.long, payload.number ,payload.brand);
     let con = connect().await.unwrap(); create_vendor(&con, &new_vendor).await.unwrap(); let token = vendor_login(&con, &new_vendor.name ,&new_vendor.pw_hash).await.unwrap();
 
     (StatusCode::OK, Json(token))
